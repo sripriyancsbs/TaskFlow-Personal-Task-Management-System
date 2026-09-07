@@ -5,140 +5,168 @@ import {
   IconToday,
   IconUpcoming,
   IconCompleted,
+  IconFocus,
   IconSettings,
-  IconChevronLeft,
-  IconChevronRight,
   IconPlus,
 } from './Icons';
 
 export default function Sidebar({
   activeNav,
   onSelectNav,
-  isCollapsed,
-  onToggleCollapse,
   stats = { total: 0, pending: 0, completed: 0 },
   todayCount = 0,
   upcomingCount = 0,
   onOpenNewTask,
   onOpenShortcuts,
 }) {
-  const navItems = [
+  const navLinks = [
     {
-      id: 'overview',
-      label: 'Overview',
-      icon: <IconOverview className="sidebar-nav-icon" />,
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: <IconOverview className="sidebar-icon" />,
       badge: null,
     },
     {
       id: 'tasks',
       label: 'My Tasks',
-      icon: <IconTasks className="sidebar-nav-icon" />,
-      badge: stats.pending > 0 ? stats.pending : null,
-      badgeType: 'pending',
+      icon: <IconTasks className="sidebar-icon" />,
+      badge: stats.total > 0 ? stats.total : null,
+      badgeColor: 'badge-blue',
     },
     {
       id: 'today',
       label: 'Today',
-      icon: <IconToday className="sidebar-nav-icon" />,
+      icon: <IconToday className="sidebar-icon" />,
       badge: todayCount > 0 ? todayCount : null,
-      badgeType: 'today',
+      badgeColor: 'badge-red',
     },
     {
       id: 'upcoming',
       label: 'Upcoming',
-      icon: <IconUpcoming className="sidebar-nav-icon" />,
+      icon: <IconUpcoming className="sidebar-icon" />,
       badge: upcomingCount > 0 ? upcomingCount : null,
-      badgeType: 'neutral',
+      badgeColor: 'badge-green',
     },
     {
       id: 'completed',
       label: 'Completed',
-      icon: <IconCompleted className="sidebar-nav-icon" />,
+      icon: <IconCompleted className="sidebar-icon" />,
       badge: stats.completed > 0 ? stats.completed : null,
-      badgeType: 'completed',
+      badgeColor: 'badge-green',
+    },
+    {
+      id: 'focus',
+      label: 'Focus Mode',
+      icon: <IconFocus className="sidebar-icon" />,
+      badge: null,
+    },
+    {
+      id: 'insights',
+      label: 'Insights',
+      icon: (
+        <svg className="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+      ),
+      badge: null,
+    },
+    {
+      id: 'settings',
+      label: 'Settings',
+      icon: <IconSettings className="sidebar-icon" />,
+      badge: null,
     },
   ];
 
   return (
-    <aside className={`app-sidebar ${isCollapsed ? 'sidebar-collapsed' : 'sidebar-expanded'}`}>
-      <div className="sidebar-inner">
-        {/* Quick Action: New Task */}
-        <div className="sidebar-action-wrap">
-          <button
-            type="button"
-            className="sidebar-quick-add-btn"
-            onClick={onOpenNewTask}
-            title="Create new task (N)"
-            aria-label="Create new task"
-          >
-            <IconPlus className="w-4 h-4 btn-plus-icon" />
-            {!isCollapsed && <span className="btn-add-text">New Task</span>}
-            {!isCollapsed && <kbd className="btn-add-kbd">N</kbd>}
-          </button>
+    <aside className="reference-sidebar" aria-label="Main navigation">
+      {/* Brand Header */}
+      <div className="sidebar-brand-block">
+        <div className="sidebar-brand-row">
+          <div className="sidebar-lightning-icon">
+            <svg className="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+          </div>
+          <div className="sidebar-brand-text">
+            <span className="sidebar-brand-title">TaskFlow</span>
+            <span className="sidebar-brand-slogan">Plan. Focus. Achieve.</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Navigation List */}
+      <nav className="sidebar-nav-container">
+        <ul className="sidebar-nav-menu">
+          {navLinks.map((item) => {
+            const isActive = activeNav === item.id;
+            return (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className={`sidebar-menu-btn ${isActive ? 'btn-active-dashboard' : ''}`}
+                  onClick={() => {
+                    if (item.id === 'settings') {
+                      onOpenShortcuts();
+                    } else {
+                      onSelectNav(item.id);
+                    }
+                  }}
+                  aria-current={isActive ? 'page' : undefined}
+                >
+                  <span className="sidebar-btn-icon-wrap">{item.icon}</span>
+                  <span className="sidebar-btn-label">{item.label}</span>
+                  {item.badge !== null && (
+                    <span className={`sidebar-count-circle ${item.badgeColor}`}>
+                      {item.badge}
+                    </span>
+                  )}
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+
+      {/* Bottom Mountain Card & New Task CTA */}
+      <div className="sidebar-bottom-panel">
+        {/* Mountain Atmosphere Card matching reference */}
+        <div className="sidebar-mountain-card">
+          <div className="mountain-artwork">
+            <svg className="mountain-svg" viewBox="0 0 160 70" fill="none">
+              {/* Mountain silhouettes */}
+              <polygon points="20,70 65,22 110,70" fill="#1e293b" opacity="0.8" />
+              <polygon points="75,70 120,30 160,70" fill="#0f172a" opacity="0.9" />
+              <polygon points="0,70 38,35 85,70" fill="#334155" opacity="0.6" />
+              {/* Star dots */}
+              <circle cx="25" cy="15" r="1" fill="#93c5fd" />
+              <circle cx="85" cy="10" r="1.2" fill="#bfdbfe" />
+              <circle cx="140" cy="18" r="1" fill="#93c5fd" />
+            </svg>
+          </div>
+          <p className="mountain-quote-text">
+            &ldquo;Small steps every day lead to big results.&rdquo;
+          </p>
+          <div className="mountain-progress-track">
+            <div className="mountain-progress-fill" style={{ width: '45%' }} />
+          </div>
         </div>
 
-        {/* Navigation Sections */}
-        <nav className="sidebar-nav" aria-label="Main navigation">
-          {!isCollapsed && <div className="sidebar-nav-heading">WORKSPACE</div>}
-          <ul className="sidebar-nav-list">
-            {navItems.map((item) => {
-              const isActive = activeNav === item.id;
-              return (
-                <li key={item.id} className="sidebar-nav-item">
-                  <button
-                    type="button"
-                    className={`sidebar-nav-link ${isActive ? 'nav-link-active' : ''}`}
-                    onClick={() => onSelectNav(item.id)}
-                    title={isCollapsed ? item.label : undefined}
-                    aria-current={isActive ? 'page' : undefined}
-                  >
-                    <span className="sidebar-nav-icon-wrap">{item.icon}</span>
-                    {!isCollapsed && <span className="sidebar-nav-label">{item.label}</span>}
-                    {!isCollapsed && item.badge !== null && (
-                      <span className={`sidebar-badge badge-${item.badgeType}`}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
-        {/* Bottom Preferences / Collapse section */}
-        <div className="sidebar-bottom-cluster">
-          <button
-            type="button"
-            className="sidebar-nav-link sidebar-settings-btn"
-            onClick={onOpenShortcuts}
-            title="Shortcuts & System Guide (?)"
-          >
-            <span className="sidebar-nav-icon-wrap">
-              <IconSettings className="sidebar-nav-icon" />
-            </span>
-            {!isCollapsed && <span className="sidebar-nav-label">Help & Keys</span>}
-            {!isCollapsed && <kbd className="sidebar-help-kbd">?</kbd>}
-          </button>
-
-          {/* Collapse / Expand Toggle */}
-          <button
-            type="button"
-            className="sidebar-collapse-toggle-btn"
-            onClick={onToggleCollapse}
-            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {isCollapsed ? (
-              <IconChevronRight className="w-4 h-4" />
-            ) : (
-              <>
-                <IconChevronLeft className="w-4 h-4" />
-                <span className="collapse-text">Collapse</span>
-              </>
-            )}
-          </button>
-        </div>
+        {/* Full-Width New Task Button with 'N' tag */}
+        <button
+          type="button"
+          className="sidebar-bottom-add-btn"
+          onClick={onOpenNewTask}
+          title="Create task (N)"
+        >
+          <div className="btn-add-left">
+            <IconPlus className="w-4 h-4 mr-1.5" />
+            <span>New Task</span>
+          </div>
+          <kbd className="btn-add-kbd-pill">N</kbd>
+        </button>
       </div>
     </aside>
   );

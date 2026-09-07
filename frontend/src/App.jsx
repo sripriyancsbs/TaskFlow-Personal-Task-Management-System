@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import GlobalHeader from './components/GlobalHeader';
 import Sidebar from './components/Sidebar';
+import RightRail from './components/RightRail';
 import MobileBottomNav from './components/MobileBottomNav';
 import ProductivityHero from './components/ProductivityHero';
-import TodayFocus from './components/TodayFocus';
 import StatsOverview from './components/StatsOverview';
-import ActivityTimeline from './components/ActivityTimeline';
+import TodayFocus from './components/TodayFocus';
 import TaskToolbar from './components/TaskToolbar';
 import TaskList from './components/TaskList';
 import TaskDetailPanel from './components/TaskDetailPanel';
@@ -25,29 +25,14 @@ export default function App() {
   const { theme, toggleTheme } = useTheme();
   const toast = useToast();
 
-  // Navigation and Workspace state
-  const [activeNav, setActiveNav] = useState('overview'); // 'overview' | 'tasks' | 'today' | 'upcoming' | 'completed'
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    try {
-      return localStorage.getItem('taskflow_sidebar_collapsed') === 'true';
-    } catch {
-      return false;
-    }
-  });
-
-  const [viewMode, setViewMode] = useState(() => {
-    try {
-      return localStorage.getItem('taskflow_view_mode') || 'list';
-    } catch {
-      return 'list';
-    }
-  });
+  // Navigation: 'dashboard' | 'tasks' | 'today' | 'upcoming' | 'completed' | 'focus' | 'insights' | 'settings'
+  const [activeNav, setActiveNav] = useState('dashboard');
+  const [viewMode, setViewMode] = useState('list'); // 'list' | 'board' | 'focus'
 
   const [focusedTaskId, setFocusedTaskId] = useState(null);
   const [selectedDetailTask, setSelectedDetailTask] = useState(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-  const [isActivityOpen, setIsActivityOpen] = useState(false);
 
   // Hook for tasks state and API actions
   const {
@@ -75,10 +60,9 @@ export default function App() {
     handleUpdateTask,
     handleToggleStatus,
     handleDeleteTask,
-    refreshTasks,
   } = useTasks(toast);
 
-  // Keep selectedDetailTask in sync if tasks list updates
+  // Sync selectedDetailTask if tasks update
   useEffect(() => {
     if (selectedDetailTask) {
       const refreshed = tasks.find((t) => t.id === selectedDetailTask.id);
@@ -88,45 +72,25 @@ export default function App() {
     }
   }, [tasks]);
 
-  const handleToggleSidebarCollapse = () => {
-    setIsSidebarCollapsed((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('taskflow_sidebar_collapsed', String(next));
-      } catch {
-        // Ignore
-      }
-      return next;
-    });
-  };
-
-  const handleViewModeChange = (mode) => {
-    setViewMode(mode);
-    try {
-      localStorage.setItem('taskflow_view_mode', mode);
-    } catch {
-      // Ignore
-    }
-  };
-
-  // Switch navigation tabs
+  // Handle navigation selection
   const handleSelectNav = (navId) => {
     setActiveNav(navId);
     if (navId === 'completed') {
       setStatusFilter('Completed');
     } else if (navId === 'today' || navId === 'upcoming') {
       setStatusFilter('Pending');
-    } else if (navId === 'tasks') {
+    } else if (navId === 'tasks' || navId === 'dashboard') {
       setStatusFilter('All');
+    } else if (navId === 'focus') {
+      setViewMode('focus');
     }
   };
 
-  // Launch focus sprint from Today's Focus or details drawer
+  // Start Focus Mode from Today's Focus or Right Rail
   const handleStartFocus = (task) => {
     setFocusedTaskId(task.id);
-    setActiveNav('tasks');
-    handleViewModeChange('focus');
-    toast.info(`Focus Sprint started for: "${task.title.slice(0, 28)}..."`);
+    setViewMode('focus');
+    toast.info(`Focus Sprint started: "${task.title.slice(0, 26)}..."`);
   };
 
   // Global Keyboard Shortcuts
@@ -139,7 +103,6 @@ export default function App() {
         return;
       }
 
-      // If user is actively typing in an input or textarea, don't trigger single-letter hotkeys
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {
         return;
       }
@@ -150,18 +113,6 @@ export default function App() {
       } else if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         toggleTheme();
-      } else if (e.key === 'l' || e.key === 'L') {
-        e.preventDefault();
-        setActiveNav('tasks');
-        handleViewModeChange('list');
-      } else if (e.key === 'b' || e.key === 'B') {
-        e.preventDefault();
-        setActiveNav('tasks');
-        handleViewModeChange('board');
-      } else if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault();
-        setActiveNav('tasks');
-        handleViewModeChange('focus');
       } else if (e.key === '?') {
         e.preventDefault();
         setIsShortcutsOpen(true);
@@ -169,7 +120,7 @@ export default function App() {
         if (selectedDetailTask) setSelectedDetailTask(null);
         if (isCommandPaletteOpen) setIsCommandPaletteOpen(false);
         if (isShortcutsOpen) setIsShortcutsOpen(false);
-        if (viewMode === 'focus') handleViewModeChange('list');
+        if (viewMode === 'focus') setViewMode('list');
       }
     }
 
@@ -201,7 +152,7 @@ export default function App() {
     }).length;
   }, [tasks]);
 
-  // Filter tasks displayed when in specific nav views (Today / Upcoming)
+  // Filter tasks based on selected navigation tab
   const displayedTasks = useMemo(() => {
     if (activeNav === 'today') {
       return tasks.filter((t) => {
@@ -218,59 +169,32 @@ export default function App() {
     return tasks;
   }, [tasks, activeNav]);
 
-  const handleResetFilters = () => {
-    setStatusFilter('All');
-    setPriorityFilter('All');
-    setSearchQuery('');
-  };
-
   const handleExportCSV = () => {
     const ok = exportToCSV(tasks);
-    if (ok) {
-      toast.success('Tasks exported to CSV successfully.');
-    } else {
-      toast.error('No tasks available to export.');
-    }
+    if (ok) toast.success('Tasks exported to CSV.');
   };
 
   const handleExportJSON = () => {
     const ok = exportToJSON(tasks);
-    if (ok) {
-      toast.success('Tasks exported to JSON successfully.');
-    } else {
-      toast.error('No tasks available to export.');
-    }
+    if (ok) toast.success('Tasks exported to JSON.');
   };
 
-  const handleCopyTitle = (title) => {
-    toast.info(`Copied to clipboard: "${title.slice(0, 25)}${title.length > 25 ? '...' : ''}"`);
+  const handleCalendarSelectDate = (dateStr) => {
+    setSearchQuery(dateStr);
+    toast.info(`Filtered tasks for date: ${dateStr}`);
   };
 
   return (
-    <div className="command-app-shell">
+    <div className="reference-app-root">
       {/* Toast Notifications */}
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
 
-      {/* Global Command Center Header */}
-      <GlobalHeader
-        theme={theme}
-        toggleTheme={toggleTheme}
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
-        onOpenShortcuts={() => setIsShortcutsOpen(true)}
-        onToggleActivity={() => setIsActivityOpen((prev) => !prev)}
-        hasRecentActivity={tasks.length > 0}
-        pendingCount={stats.pending}
-      />
-
-      {/* Main App Layout: Sidebar + Workspace */}
-      <div className="app-body-layout">
+      {/* 3-Column Shell Structure */}
+      <div className="reference-layout-shell">
+        {/* 1. Left Sidebar */}
         <Sidebar
           activeNav={activeNav}
           onSelectNav={handleSelectNav}
-          isCollapsed={isSidebarCollapsed}
-          onToggleCollapse={handleToggleSidebarCollapse}
           stats={stats}
           todayCount={todayCount}
           upcomingCount={upcomingCount}
@@ -278,15 +202,31 @@ export default function App() {
           onOpenShortcuts={() => setIsShortcutsOpen(true)}
         />
 
-        {/* Main Central Workspace */}
-        <main className="main-command-workspace">
-          {/* VIEW: OVERVIEW */}
-          {activeNav === 'overview' && (
-            <div className="overview-container">
-              {/* Dynamic Productivity Hero */}
-              <ProductivityHero stats={stats} />
+        {/* 2. Main Center & Header Area */}
+        <div className="reference-content-frame">
+          {/* Top Slim Header */}
+          <GlobalHeader
+            theme={theme}
+            toggleTheme={toggleTheme}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+            onOpenShortcuts={() => setIsShortcutsOpen(true)}
+            tasks={tasks}
+            onSelectTask={(t) => setSelectedDetailTask(t)}
+          />
 
-              {/* Today's Focus Priority Card */}
+          {/* Body Columns: Center Workspace + Right Information Rail */}
+          <div className="reference-body-columns">
+            {/* Center Main Productivity Workspace */}
+            <main className="reference-center-workspace">
+              {/* Top Hero Banner matching reference */}
+              <ProductivityHero />
+
+              {/* 4 Horizontal Metric Cards matching reference */}
+              <StatsOverview stats={stats} />
+
+              {/* Today's Focus Card matching reference */}
               <TodayFocus
                 tasks={tasks}
                 onStartFocus={handleStartFocus}
@@ -295,64 +235,64 @@ export default function App() {
                 isActionLoading={actionLoading}
               />
 
-              {/* Command Metrics Strip */}
-              <StatsOverview stats={stats} />
+              {/* My Tasks Section */}
+              <section className="my-tasks-section-wrap" aria-label="My Tasks Workspace">
+                <TaskToolbar
+                  statusFilter={statusFilter}
+                  setStatusFilter={setStatusFilter}
+                  priorityFilter={priorityFilter}
+                  setPriorityFilter={setPriorityFilter}
+                  sortBy={sortBy}
+                  setSortBy={setSortBy}
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  onOpenAddModal={() => setIsAddModalOpen(true)}
+                  stats={stats}
+                />
 
-              {/* Real Activity Timeline */}
-              <ActivityTimeline
-                tasks={tasks}
-                onSelectTask={(task) => setSelectedDetailTask(task)}
-              />
-            </div>
-          )}
+                <TaskList
+                  tasks={displayedTasks}
+                  loading={loading}
+                  statusFilter={statusFilter}
+                  priorityFilter={priorityFilter}
+                  searchQuery={searchQuery}
+                  hasAnyTasks={stats.total > 0}
+                  viewMode={viewMode}
+                  onToggleStatus={handleToggleStatus}
+                  onEdit={(task) => setEditingTask(task)}
+                  onDelete={(task) => setDeletingTask(task)}
+                  onSelectTask={(task) => setSelectedDetailTask(task)}
+                  onStartFocus={handleStartFocus}
+                  onOpenAddModal={() => setIsAddModalOpen(true)}
+                  onResetFilters={() => {
+                    setStatusFilter('All');
+                    setPriorityFilter('All');
+                    setSearchQuery('');
+                  }}
+                  actionLoading={actionLoading}
+                  focusedTaskId={focusedTaskId}
+                  onSelectFocusedTaskId={(id) => setFocusedTaskId(id)}
+                  onExitFocus={() => setViewMode('list')}
+                />
+              </section>
+            </main>
 
-          {/* VIEW: MY TASKS / TODAY / UPCOMING / COMPLETED */}
-          {activeNav !== 'overview' && (
-            <div className="task-workspace-container">
-              {/* Workspace Toolbar */}
-              <TaskToolbar
-                statusFilter={statusFilter}
-                setStatusFilter={setStatusFilter}
-                priorityFilter={priorityFilter}
-                setPriorityFilter={setPriorityFilter}
-                sortBy={sortBy}
-                setSortBy={setSortBy}
-                viewMode={viewMode}
-                setViewMode={handleViewModeChange}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                onOpenAddModal={() => setIsAddModalOpen(true)}
-                totalMatching={displayedTasks.length}
-                onResetFilters={handleResetFilters}
-              />
-
-              {/* Task Feed / Board / Focus View */}
-              <TaskList
-                tasks={displayedTasks}
-                loading={loading}
-                statusFilter={statusFilter}
-                priorityFilter={priorityFilter}
-                searchQuery={searchQuery}
-                hasAnyTasks={stats.total > 0}
-                viewMode={viewMode}
-                onToggleStatus={handleToggleStatus}
-                onEdit={(task) => setEditingTask(task)}
-                onDelete={(task) => setDeletingTask(task)}
-                onCopyTitle={handleCopyTitle}
-                onSelectTask={(task) => setSelectedDetailTask(task)}
-                onOpenAddModal={() => setIsAddModalOpen(true)}
-                onResetFilters={handleResetFilters}
-                actionLoading={actionLoading}
-                focusedTaskId={focusedTaskId}
-                onSelectFocusedTaskId={(id) => setFocusedTaskId(id)}
-                onExitFocus={() => handleViewModeChange('list')}
-              />
-            </div>
-          )}
-        </main>
+            {/* 3. Right Information Rail matching reference */}
+            <RightRail
+              tasks={tasks}
+              onToggleStatus={handleToggleStatus}
+              onOpenNewTask={() => setIsAddModalOpen(true)}
+              onExpandFocusMode={() => setViewMode('focus')}
+              onSelectCalendarDate={handleCalendarSelectDate}
+              isActionLoading={actionLoading}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Mobile Bottom Navigation Dock (viewports <= 768px) */}
+      {/* Mobile Bottom Navigation (<= 768px) */}
       <MobileBottomNav
         activeNav={activeNav}
         onSelectNav={handleSelectNav}
@@ -389,11 +329,9 @@ export default function App() {
         tasks={tasks}
         onOpenNewTask={() => setIsAddModalOpen(true)}
         onSelectViewMode={(mode) => {
-          setActiveNav('tasks');
-          handleViewModeChange(mode);
+          setViewMode(mode);
         }}
         onSelectStatusFilter={(st) => {
-          setActiveNav('tasks');
           setStatusFilter(st);
         }}
         onSelectTask={(task) => setSelectedDetailTask(task)}
@@ -404,7 +342,7 @@ export default function App() {
         onExportJSON={handleExportJSON}
       />
 
-      {/* New Task Composer Modal */}
+      {/* Task Creation Modal */}
       <TaskModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -412,7 +350,7 @@ export default function App() {
         isSaving={actionLoading}
       />
 
-      {/* Edit Task Modal (fallback or direct edit) */}
+      {/* Edit Task Modal */}
       <TaskModal
         isOpen={Boolean(editingTask)}
         initialData={editingTask}
@@ -430,7 +368,7 @@ export default function App() {
         isDeleting={actionLoading}
       />
 
-      {/* Keyboard Shortcuts Cheat Sheet Modal */}
+      {/* Keyboard Shortcuts Cheatsheet Modal */}
       <KeyboardShortcutsModal
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}

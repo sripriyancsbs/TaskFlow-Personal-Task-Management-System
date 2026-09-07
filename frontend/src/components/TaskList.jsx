@@ -15,8 +15,8 @@ export default function TaskList({
   onToggleStatus,
   onEdit,
   onDelete,
-  onCopyTitle,
   onSelectTask,
+  onStartFocus,
   onOpenAddModal,
   onResetFilters,
   actionLoading = false,
@@ -28,9 +28,9 @@ export default function TaskList({
   if (loading) {
     return (
       <div className="task-feed-container skeleton-feed" aria-busy="true" aria-label="Loading tasks">
-        {[1, 2, 3, 4].map((n) => (
-          <div key={n} className="task-row-card skeleton-card">
-            <div className="skeleton-circle" />
+        {[1, 2, 3].map((n) => (
+          <div key={n} className="ref-task-row skeleton-row">
+            <div className="skeleton-square" />
             <div className="skeleton-content-col">
               <div className="skeleton-line skeleton-title-line" />
               <div className="skeleton-line skeleton-desc-line" />
@@ -64,7 +64,6 @@ export default function TaskList({
         onToggleStatus={onToggleStatus}
         onEdit={onEdit}
         onDelete={onDelete}
-        onCopyTitle={onCopyTitle}
         onSelectTask={onSelectTask}
         onOpenAddModal={onOpenAddModal}
         actionLoading={actionLoading}
@@ -72,7 +71,7 @@ export default function TaskList({
     );
   }
 
-  // Empty State (when in List View or filters return zero items)
+  // Empty State
   if (tasks.length === 0) {
     return (
       <EmptyState
@@ -86,9 +85,9 @@ export default function TaskList({
     );
   }
 
-  // List View (Default)
+  // List View (Default matching reference)
   return (
-    <div className="task-feed-container" role="feed" aria-label="Task list feed">
+    <div className="task-rows-stack" role="feed" aria-label="Task list feed">
       {tasks.map((task) => (
         <TaskCard
           key={task.id}
@@ -96,8 +95,8 @@ export default function TaskList({
           onToggleStatus={onToggleStatus}
           onEdit={onEdit}
           onDelete={onDelete}
-          onCopyTitle={onCopyTitle}
           onSelectTask={onSelectTask}
+          onStartFocus={onStartFocus}
           isActionLoading={actionLoading}
         />
       ))}

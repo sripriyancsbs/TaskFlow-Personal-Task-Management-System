@@ -2,10 +2,9 @@ import React from 'react';
 import {
   IconList,
   IconBoard,
-  IconFocus,
   IconPlus,
-  IconFilter,
   IconSearch,
+  IconFire,
 } from './Icons';
 
 export default function TaskToolbar({
@@ -20,116 +19,85 @@ export default function TaskToolbar({
   searchQuery,
   setSearchQuery,
   onOpenAddModal,
-  totalMatching = 0,
-  onResetFilters,
+  stats = { total: 0, pending: 0, completed: 0 },
 }) {
-  const isFiltered = statusFilter !== 'All' || priorityFilter !== 'All' || searchQuery.trim() !== '';
-
   return (
-    <div className="workspace-toolbar">
-      {/* Top row: Title + View Switcher + New Task */}
-      <div className="toolbar-top-row">
-        <div className="toolbar-heading-cluster">
-          <h2 className="workspace-title">My Tasks</h2>
-          <span className="workspace-counter-badge">{totalMatching}</span>
+    <div className="reference-my-tasks-header-block">
+      {/* Top Heading Row matching reference: Flame icon + 'My Tasks' + '+ New Task' */}
+      <div className="my-tasks-title-row">
+        <div className="my-tasks-heading">
+          <div className="my-tasks-flame-icon">
+            <IconFire className="w-5 h-5 text-blue-400" />
+          </div>
+          <h3 className="my-tasks-title-text">My Tasks</h3>
         </div>
 
-        {/* View Switcher: List | Board | Focus */}
-        <div className="view-mode-selector" role="group" aria-label="Task view mode">
-          <button
-            type="button"
-            className={`view-mode-btn ${viewMode === 'list' ? 'view-mode-active' : ''}`}
-            onClick={() => setViewMode('list')}
-            title="List View (L)"
-            aria-pressed={viewMode === 'list'}
-          >
-            <IconList className="w-3.5 h-3.5 mr-1.5" />
-            <span>List</span>
-          </button>
-
-          <button
-            type="button"
-            className={`view-mode-btn ${viewMode === 'board' ? 'view-mode-active' : ''}`}
-            onClick={() => setViewMode('board')}
-            title="Kanban Board View (B)"
-            aria-pressed={viewMode === 'board'}
-          >
-            <IconBoard className="w-3.5 h-3.5 mr-1.5" />
-            <span>Board</span>
-          </button>
-
-          <button
-            type="button"
-            className={`view-mode-btn ${viewMode === 'focus' ? 'view-mode-active' : ''}`}
-            onClick={() => setViewMode('focus')}
-            title="Focus Timer Mode (F)"
-            aria-pressed={viewMode === 'focus'}
-          >
-            <IconFocus className="w-3.5 h-3.5 mr-1.5" />
-            <span>Focus</span>
-          </button>
-        </div>
-
-        {/* Primary CTA */}
         <button
           type="button"
-          className="btn-new-task-primary"
+          className="btn-add-task-reference"
           onClick={onOpenAddModal}
-          title="Create task (N)"
+          title="Create New Task (N)"
         >
           <IconPlus className="w-4 h-4 mr-1.5" />
           <span>New Task</span>
-          <kbd className="kbd-shortcut-hint">N</kbd>
         </button>
       </div>
 
-      {/* Bottom row: Search + Status Filters + Priority Filters + Sort */}
-      <div className="toolbar-filters-row">
-        {/* Search inside workspace */}
-        <div className="toolbar-search-wrap">
-          <IconSearch className="toolbar-search-icon" />
+      {/* Filter Controls Row matching reference */}
+      <div className="my-tasks-controls-bar">
+        {/* Status Pills: All (3) | Pending (2) | Completed (1) */}
+        <div className="status-pills-cluster" role="radiogroup">
+          <button
+            type="button"
+            className={`ref-status-pill ${statusFilter === 'All' ? 'pill-active-electric' : ''}`}
+            onClick={() => setStatusFilter('All')}
+          >
+            All ({stats.total})
+          </button>
+          <button
+            type="button"
+            className={`ref-status-pill ${statusFilter === 'Pending' ? 'pill-active-electric' : ''}`}
+            onClick={() => setStatusFilter('Pending')}
+          >
+            Pending ({stats.pending})
+          </button>
+          <button
+            type="button"
+            className={`ref-status-pill ${statusFilter === 'Completed' ? 'pill-active-electric' : ''}`}
+            onClick={() => setStatusFilter('Completed')}
+          >
+            Completed ({stats.completed})
+          </button>
+        </div>
+
+        {/* Search Input */}
+        <div className="ref-inline-search-wrap">
+          <IconSearch className="inline-search-icon" />
           <input
             type="search"
-            className="toolbar-search-input"
-            placeholder="Filter tasks..."
+            className="inline-search-input"
+            placeholder="Search tasks..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            aria-label="Filter tasks"
+            aria-label="Search tasks"
           />
           {searchQuery && (
             <button
               type="button"
-              className="toolbar-clear-btn"
+              className="inline-search-clear"
               onClick={() => setSearchQuery('')}
-              title="Clear search"
             >
               &times;
             </button>
           )}
         </div>
 
-        {/* Status Filter Pills */}
-        <div className="filter-pill-group" role="radiogroup" aria-label="Filter by status">
-          {['All', 'Pending', 'Completed'].map((status) => (
-            <button
-              key={status}
-              type="button"
-              className={`filter-pill ${statusFilter === status ? 'pill-active' : ''}`}
-              onClick={() => setStatusFilter(status)}
-              role="radio"
-              aria-checked={statusFilter === status}
-            >
-              {status}
-            </button>
-          ))}
-        </div>
-
-        {/* Priority Filter */}
-        <div className="select-dropdown-wrap">
-          <label htmlFor="priority-filter-select" className="sr-only">Filter by Priority</label>
+        {/* Priority Filter Dropdown */}
+        <div className="ref-select-wrap">
+          <label htmlFor="priority-filter-dropdown" className="sr-only">Filter by Priority</label>
           <select
-            id="priority-filter-select"
-            className="toolbar-select"
+            id="priority-filter-dropdown"
+            className="ref-select"
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
           >
@@ -140,12 +108,12 @@ export default function TaskToolbar({
           </select>
         </div>
 
-        {/* Sort Selector */}
-        <div className="select-dropdown-wrap">
-          <label htmlFor="sort-select" className="sr-only">Sort Tasks</label>
+        {/* Sort Dropdown */}
+        <div className="ref-select-wrap">
+          <label htmlFor="sort-tasks-dropdown" className="sr-only">Sort Tasks</label>
           <select
-            id="sort-select"
-            className="toolbar-select"
+            id="sort-tasks-dropdown"
+            className="ref-select"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
@@ -156,17 +124,27 @@ export default function TaskToolbar({
           </select>
         </div>
 
-        {/* Reset Filter button if filtered */}
-        {isFiltered && (
+        {/* View Switcher: List vs Board */}
+        <div className="ref-view-switcher">
           <button
             type="button"
-            className="btn-reset-filters"
-            onClick={onResetFilters}
-            title="Clear all filters"
+            className={`view-btn ${viewMode === 'list' ? 'view-btn-active' : ''}`}
+            onClick={() => setViewMode('list')}
+            title="List View"
+            aria-label="List View"
           >
-            Reset
+            <IconList className="w-4 h-4" />
           </button>
-        )}
+          <button
+            type="button"
+            className={`view-btn ${viewMode === 'board' ? 'view-btn-active' : ''}`}
+            onClick={() => setViewMode('board')}
+            title="Kanban Board View"
+            aria-label="Board View"
+          >
+            <IconBoard className="w-4 h-4" />
+          </button>
+        </div>
       </div>
     </div>
   );

@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { formatDate, formatDueDate } from '../utils/dateUtils';
+import React from 'react';
+import { formatDate } from '../utils/dateUtils';
 import {
   IconCheck,
-  IconCopy,
+  IconPlay,
   IconEdit,
   IconTrash,
-  IconChevronRight,
-  IconFire,
+  IconUpcoming,
 } from './Icons';
 
 export default function TaskCard({
@@ -14,28 +13,18 @@ export default function TaskCard({
   onToggleStatus,
   onEdit,
   onDelete,
-  onCopyTitle,
   onSelectTask,
+  onStartFocus,
   isActionLoading,
   isDraggable = false,
   onDragStart,
 }) {
   const isCompleted = task.status === 'Completed';
   const priority = task.priority || 'Medium';
-  const dueDateInfo = formatDueDate(task.due_date, task.status);
-  const [copied, setCopied] = useState(false);
 
   const handleCheckboxClick = (e) => {
     e.stopPropagation();
     onToggleStatus?.(task);
-  };
-
-  const handleCopy = (e) => {
-    e.stopPropagation();
-    navigator.clipboard?.writeText(task.title);
-    setCopied(true);
-    onCopyTitle?.(task.title);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleEdit = (e) => {
@@ -48,129 +37,93 @@ export default function TaskCard({
     onDelete?.(task);
   };
 
-  const handleCardClick = () => {
-    onSelectTask?.(task);
+  const handleStartFocus = (e) => {
+    e.stopPropagation();
+    onStartFocus?.(task);
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      onSelectTask?.(task);
-    }
-  };
+  const formattedDate = task.due_date ? formatDate(task.due_date) : formatDate(task.created_at);
 
   return (
     <article
-      className={`task-row-card ${isCompleted ? 'task-row-completed' : 'task-row-pending'} priority-${priority.toLowerCase()}`}
-      onClick={handleCardClick}
-      onKeyDown={handleKeyDown}
+      className={`ref-task-row ${isCompleted ? 'task-row-is-completed' : ''}`}
+      onClick={() => onSelectTask?.(task)}
       tabIndex={0}
       role="button"
-      aria-label={`Task: ${task.title}. Status: ${task.status}. Priority: ${priority}. Click for details.`}
+      aria-label={`Task: ${task.title}. Status: ${task.status}. Click to open details.`}
       draggable={isDraggable}
       onDragStart={onDragStart ? (e) => onDragStart(e, task) : undefined}
     >
-      {/* Left: Custom Status Indicator / Toggle Button */}
+      {/* Checkbox Square on Left matching reference */}
       <button
         type="button"
-        className={`task-status-btn ${isCompleted ? 'status-btn-completed' : 'status-btn-pending'}`}
+        className={`ref-checkbox-box ${isCompleted ? 'checkbox-is-checked' : ''}`}
         onClick={handleCheckboxClick}
         disabled={isActionLoading}
         title={isCompleted ? 'Mark as Pending' : 'Mark as Completed'}
         aria-label={isCompleted ? 'Mark as Pending' : 'Mark as Completed'}
       >
-        <span className="status-indicator-circle">
-          {isCompleted && <IconCheck className="w-3.5 h-3.5 status-check-icon" />}
-        </span>
+        {isCompleted && <IconCheck className="w-3.5 h-3.5 text-white stroke-[3]" />}
       </button>
 
-      {/* Main Details Body */}
-      <div className="task-content-main">
-        <div className="task-title-line">
-          <h3 className={`task-title-text ${isCompleted ? 'task-completed-strikethrough' : ''}`}>
-            {task.title}
-          </h3>
-
-          {/* Priority Badge */}
-          <span className={`task-badge-priority badge-${priority.toLowerCase()}`}>
-            {priority === 'High' && <IconFire className="w-3 h-3 mr-1 text-rose-400" />}
-            <span>{priority}</span>
-          </span>
-
-          {/* Due Date Pill if set */}
-          {dueDateInfo && (
-            <span
-              className={`task-due-pill ${
-                dueDateInfo.isOverdue
-                  ? 'due-pill-overdue'
-                  : dueDateInfo.isToday
-                  ? 'due-pill-today'
-                  : 'due-pill-normal'
-              }`}
-            >
-              {dueDateInfo.text}
-            </span>
-          )}
-        </div>
-
+      {/* Main Content: Title & Description */}
+      <div className="ref-task-content">
+        <h4 className={`ref-task-title ${isCompleted ? 'title-completed-strikethrough' : ''}`}>
+          {task.title}
+        </h4>
         {task.description && (
-          <p className={`task-desc-text ${isCompleted ? 'desc-muted-completed' : ''}`}>
-            {task.description}
-          </p>
+          <p className="ref-task-description">{task.description}</p>
         )}
-
-        <div className="task-meta-footer">
-          <span className="task-date-created">Created {formatDate(task.created_at)}</span>
-        </div>
       </div>
 
-      {/* Right: Contextual Actions (Revealed cleanly on row hover) */}
-      <div className="task-actions-cluster" onClick={(e) => e.stopPropagation()}>
-        <button
-          type="button"
-          className="task-action-icon-btn"
-          onClick={handleCopy}
-          title={copied ? 'Copied!' : 'Copy title'}
-          aria-label="Copy task title"
-        >
-          {copied ? (
-            <IconCheck className="w-3.5 h-3.5 text-emerald-400" />
-          ) : (
-            <IconCopy className="w-3.5 h-3.5" />
-          )}
-        </button>
+      {/* Right Details: Priority, Due Date, Actions */}
+      <div className="ref-task-right-meta" onClick={(e) => e.stopPropagation()}>
+        {/* Priority Badge matching reference */}
+        <span className={`ref-priority-pill pill-priority-${priority.toLowerCase()}`}>
+          <span className="ref-priority-dot" />
+          <span>{priority}</span>
+        </span>
 
-        <button
-          type="button"
-          className="task-action-icon-btn"
-          onClick={handleEdit}
-          title="Edit task"
-          aria-label="Edit task"
-          disabled={isActionLoading}
-        >
-          <IconEdit className="w-3.5 h-3.5" />
-        </button>
+        {/* Due Date with Calendar icon */}
+        <div className="ref-due-date-label">
+          <IconUpcoming className="w-3.5 h-3.5 text-muted mr-1.5" />
+          <span>{formattedDate}</span>
+        </div>
 
-        <button
-          type="button"
-          className="task-action-icon-btn action-delete-btn"
-          onClick={handleDelete}
-          title="Delete task"
-          aria-label="Delete task"
-          disabled={isActionLoading}
-        >
-          <IconTrash className="w-3.5 h-3.5" />
-        </button>
+        {/* Action Icons matching reference: Play, Edit, Trash */}
+        <div className="ref-actions-bar">
+          <button
+            type="button"
+            className="ref-action-icon-btn"
+            onClick={handleStartFocus}
+            title="Start Focus on this task"
+            aria-label="Start Focus"
+          >
+            <IconPlay className="w-3.5 h-3.5" />
+          </button>
 
-        <button
-          type="button"
-          className="task-action-icon-btn action-inspect-btn"
-          onClick={handleCardClick}
-          title="Inspect details"
-          aria-label="Inspect task details"
-        >
-          <IconChevronRight className="w-4 h-4" />
-        </button>
+          <button
+            type="button"
+            className="ref-action-icon-btn"
+            onClick={handleEdit}
+            title="Edit task"
+            aria-label="Edit task"
+            disabled={isActionLoading}
+          >
+            <IconEdit className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            type="button"
+            className="ref-action-icon-btn btn-trash-action"
+            onClick={handleDelete}
+            title="Delete task"
+            aria-label="Delete task"
+            disabled={isActionLoading}
+          >
+            <IconTrash className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
     </article>
   );
