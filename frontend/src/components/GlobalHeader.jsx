@@ -4,10 +4,8 @@ import {
   IconSearch,
   IconSun,
   IconMoon,
-  IconBell,
   IconChevronRight,
 } from './Icons';
-import NotificationPopover from './NotificationPopover';
 import UserProfileDropdown from './UserProfileDropdown';
 
 export default function GlobalHeader({
@@ -21,7 +19,6 @@ export default function GlobalHeader({
   onSelectTask,
 }) {
   const searchInputRef = useRef(null);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Focus search on "/" keypress
@@ -71,7 +68,7 @@ export default function GlobalHeader({
         </div>
       </div>
 
-      {/* Right Controls matching reference: Theme Toggle, Bell, Profile */}
+      {/* Right Controls: Theme Toggle, Profile */}
       <div className="header-controls-group">
         {/* Theme Toggle Switch */}
         <button
@@ -90,39 +87,12 @@ export default function GlobalHeader({
           </div>
         </button>
 
-        {/* Notification Bell Anchor */}
-        <div className="header-popover-anchor">
-          <button
-            type="button"
-            className="header-action-btn bell-btn"
-            onClick={() => {
-              setIsNotifOpen((prev) => !prev);
-              setIsProfileOpen(false);
-            }}
-            title="Notifications"
-            aria-label="Notifications"
-          >
-            <IconBell className="w-4 h-4" />
-            {tasks.length > 0 && <span className="unread-red-dot" />}
-          </button>
-
-          <NotificationPopover
-            isOpen={isNotifOpen}
-            onClose={() => setIsNotifOpen(false)}
-            tasks={tasks}
-            onSelectTask={onSelectTask}
-          />
-        </div>
-
         {/* User Profile Avatar Anchor */}
         <div className="header-popover-anchor">
           <button
             type="button"
             className="header-user-btn"
-            onClick={() => {
-              setIsProfileOpen((prev) => !prev);
-              setIsNotifOpen(false);
-            }}
+            onClick={() => setIsProfileOpen((prev) => !prev)}
             title="Account & Preferences"
             aria-label="User Account"
           >

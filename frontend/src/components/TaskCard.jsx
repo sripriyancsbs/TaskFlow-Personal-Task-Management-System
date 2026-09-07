@@ -1,8 +1,7 @@
 import React from 'react';
-import { formatDate } from '../utils/dateUtils';
+import { formatDate, formatDueDate } from '../utils/dateUtils';
 import {
   IconCheck,
-  IconPlay,
   IconEdit,
   IconTrash,
   IconUpcoming,
@@ -14,7 +13,6 @@ export default function TaskCard({
   onEdit,
   onDelete,
   onSelectTask,
-  onStartFocus,
   isActionLoading,
   isDraggable = false,
   onDragStart,
@@ -37,16 +35,12 @@ export default function TaskCard({
     onDelete?.(task);
   };
 
-  const handleStartFocus = (e) => {
-    e.stopPropagation();
-    onStartFocus?.(task);
-  };
-
-  const formattedDate = task.due_date ? formatDate(task.due_date) : formatDate(task.created_at);
+  const dueInfo = formatDueDate(task.due_date, task.status);
+  const formattedDate = task.due_date ? formatDate(task.due_date) : 'No Due Date';
 
   return (
     <article
-      className={`ref-task-row ${isCompleted ? 'task-row-is-completed' : ''}`}
+      className={`ref-task-row ${isCompleted ? 'task-row-is-completed' : ''} ${dueInfo?.isOverdue ? 'task-row-is-overdue' : ''}`}
       onClick={() => onSelectTask?.(task)}
       tabIndex={0}
       role="button"
@@ -76,7 +70,7 @@ export default function TaskCard({
         )}
       </div>
 
-      {/* Right Details: Priority, Due Date, Actions */}
+      {/* Right Details: Priority, Due Date, Overdue Column, Actions */}
       <div className="ref-task-right-meta" onClick={(e) => e.stopPropagation()}>
         {/* Priority Badge matching reference */}
         <span className={`ref-priority-pill pill-priority-${priority.toLowerCase()}`}>
@@ -84,10 +78,27 @@ export default function TaskCard({
           <span>{priority}</span>
         </span>
 
-        {/* Due Date with Calendar icon */}
-        <div className="ref-due-date-label">
+        {/* Due Date Column */}
+        <div className={`ref-due-date-label ${!task.due_date ? 'label-no-date' : ''}`}>
           <IconUpcoming className="w-3.5 h-3.5 text-muted mr-1.5" />
           <span>{formattedDate}</span>
+        </div>
+
+        {/* Separate Overdue Days Column */}
+        <div className="ref-overdue-col" aria-label={dueInfo?.isOverdue ? `${dueInfo.overdueDays} days overdue` : 'Overdue status'}>
+          {dueInfo?.isOverdue ? (
+            <span className="overdue-tag-badge" title={`${dueInfo.overdueDays} day(s) overdue`}>
+              <span className="overdue-dot" />
+              <span>{dueInfo.overdueDays} {dueInfo.overdueDays === 1 ? 'day' : 'days'} overdue</span>
+            </span>
+          ) : dueInfo?.isToday ? (
+            <span className="due-today-tag-badge">
+              <span className="today-dot" />
+              <span>Due Today</span>
+            </span>
+          ) : (
+            <span className="no-overdue-placeholder">&mdash;</span>
+          )}
         </div>
 
         {/* Action Icons: Edit, Trash */}

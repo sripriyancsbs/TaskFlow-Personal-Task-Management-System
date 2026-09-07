@@ -133,10 +133,10 @@ export default function TaskToolbar({
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
+            <option value="due_date">Sort by Due Date</option>
+            <option value="priority">Sort by Priority</option>
             <option value="newest">Newest First</option>
             <option value="oldest">Oldest First</option>
-            <option value="priority">By Priority</option>
-            <option value="due_date">By Due Date</option>
           </select>
         </div>
 

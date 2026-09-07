@@ -201,11 +201,23 @@ export default function App() {
         const weights = { High: 3, Medium: 2, Low: 1 };
         return (weights[b.priority] || 2) - (weights[a.priority] || 2);
       }
-      if (sortBy === 'due_date') {
-        if (!a.due_date && !b.due_date) return 0;
-        if (!a.due_date) return 1;
-        if (!b.due_date) return -1;
-        return new Date(a.due_date) - new Date(b.due_date);
+      if (sortBy === 'due_date' || sortBy === 'dueDate') {
+        const weights = { High: 3, Medium: 2, Low: 1 };
+        // Both have no due date: order by priority (High > Medium > Low), then newest created
+        if (!a.due_date && !b.due_date) {
+          const pDiff = (weights[b.priority] || 2) - (weights[a.priority] || 2);
+          if (pDiff !== 0) return pDiff;
+          return new Date(b.created_at) - new Date(a.created_at);
+        }
+        // Task without due date appears on top
+        if (!a.due_date && b.due_date) return -1;
+        if (a.due_date && !b.due_date) return 1;
+
+        // Both have due dates: sort chronologically (earliest first)
+        const timeA = new Date(a.due_date).getTime();
+        const timeB = new Date(b.due_date).getTime();
+        if (timeA !== timeB) return timeA - timeB;
+        return (weights[b.priority] || 2) - (weights[a.priority] || 2);
       }
       return 0;
     });

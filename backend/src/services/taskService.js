@@ -38,8 +38,20 @@ class TaskService {
             ELSE 4 
           END ASC, created_at DESC`;
         break;
+      case 'due_date':
       case 'dueDate':
-        sql += ' ORDER BY due_date ASC NULLS LAST, created_at DESC';
+        sql += ` ORDER BY 
+          CASE WHEN due_date IS NULL THEN 0 ELSE 1 END ASC,
+          CASE WHEN due_date IS NULL THEN
+            CASE priority 
+              WHEN 'High' THEN 1 
+              WHEN 'Medium' THEN 2 
+              WHEN 'Low' THEN 3 
+              ELSE 4 
+            END
+          ELSE NULL END ASC,
+          due_date ASC,
+          created_at DESC`;
         break;
       case 'title':
         sql += ' ORDER BY LOWER(title) ASC';

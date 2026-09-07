@@ -34,9 +34,11 @@ export function formatDueDate(dateInput, status = 'Pending') {
 
   if (diffDays < 0) {
     const isCompleted = status === 'Completed';
+    const overdueDays = Math.abs(diffDays);
     return {
-      text: isCompleted ? `Was due ${formatDate(date)}` : `Overdue (${Math.abs(diffDays)}d ago)`,
+      text: isCompleted ? `Was due ${formatDate(date)}` : `Overdue (${overdueDays}d ago)`,
       isOverdue: !isCompleted,
+      overdueDays: !isCompleted ? overdueDays : 0,
       isToday: false,
       isTomorrow: false,
       isUpcoming: false,
@@ -47,6 +49,7 @@ export function formatDueDate(dateInput, status = 'Pending') {
     return {
       text: 'Due Today',
       isOverdue: false,
+      overdueDays: 0,
       isToday: true,
       isTomorrow: false,
       isUpcoming: false,
