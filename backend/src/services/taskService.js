@@ -2,11 +2,11 @@ const db = require('../config/db');
 
 class TaskService {
   /**
-   * Retrieve tasks with optional filtering and search
-   * @param {Object} options - { status, search }
+   * Retrieve tasks with optional filtering, search, and sorting
+   * @param {Object} options - { status, priority, search, sort }
    */
-  async getAllTasks({ status, search } = {}) {
-    let sql = 'SELECT id, title, description, status, created_at FROM tasks WHERE 1=1';
+  async getAllTasks({ status, priority, search, sort = 'newest' } = {}) {
+    let sql = 'SELECT id, title, description, status, priority, due_date, created_at FROM tasks WHERE 1=1';
     const params = [];
 
     if (status && status !== 'All') {
@@ -14,30 +14,60 @@ class TaskService {
       sql += ` AND status = $${params.length}`;
     }
 
+    if (priority && priority !== 'All') {
+      params.push(priority);
+      sql += ` AND priority = $${params.length}`;
+    }
+
     if (search && search.trim()) {
       params.push(`%${search.trim().toLowerCase()}%`);
       sql += ` AND (LOWER(title) LIKE $${params.length} OR LOWER(COALESCE(description, '')) LIKE $${params.length})`;
     }
 
-    sql += ' ORDER BY created_at DESC';
+    // Dynamic sorting
+    switch (sort) {
+      case 'oldest':
+        sql += ' ORDER BY created_at ASC';
+        break;
+      case 'priority':
+        sql += ` ORDER BY 
+          CASE priority 
+            WHEN 'High' THEN 1 
+            WHEN 'Medium' THEN 2 
+            WHEN 'Low' THEN 3 
+            ELSE 4 
+          END ASC, created_at DESC`;
+        break;
+      case 'dueDate':
+        sql += ' ORDER BY due_date ASC NULLS LAST, created_at DESC';
+        break;
+      case 'title':
+        sql += ' ORDER BY LOWER(title) ASC';
+        break;
+      case 'newest':
+      default:
+        sql += ' ORDER BY created_at DESC';
+        break;
+    }
 
     const result = await db.query(sql, params);
     return result.rows;
   }
 
   /**
-   * Get task statistics (total, pending, completed)
+   * Get task statistics (total, pending, completed, high priority count)
    */
   async getStats() {
     const sql = `
       SELECT
         COUNT(*)::int AS total,
         COUNT(CASE WHEN status = 'Pending' THEN 1 END)::int AS pending,
-        COUNT(CASE WHEN status = 'Completed' THEN 1 END)::int AS completed
+        COUNT(CASE WHEN status = 'Completed' THEN 1 END)::int AS completed,
+        COUNT(CASE WHEN priority = 'High' AND status = 'Pending' THEN 1 END)::int AS high_priority
       FROM tasks
     `;
     const result = await db.query(sql);
-    return result.rows[0] || { total: 0, pending: 0, completed: 0 };
+    return result.rows[0] || { total: 0, pending: 0, completed: 0, high_priority: 0 };
   }
 
   /**
@@ -45,25 +75,27 @@ class TaskService {
    * @param {number} id
    */
   async getTaskById(id) {
-    const sql = 'SELECT id, title, description, status, created_at FROM tasks WHERE id = $1';
+    const sql = 'SELECT id, title, description, status, priority, due_date, created_at FROM tasks WHERE id = $1';
     const result = await db.query(sql, [id]);
     return result.rows[0] || null;
   }
 
   /**
    * Create a new task
-   * @param {Object} taskData - { title, description, status }
+   * @param {Object} taskData - { title, description, status, priority, due_date }
    */
-  async createTask({ title, description, status = 'Pending' }) {
+  async createTask({ title, description, status = 'Pending', priority = 'Medium', due_date = null }) {
     const sql = `
-      INSERT INTO tasks (title, description, status)
-      VALUES ($1, $2, $3)
-      RETURNING id, title, description, status, created_at
+      INSERT INTO tasks (title, description, status, priority, due_date)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, title, description, status, priority, due_date, created_at
     `;
     const result = await db.query(sql, [
       title.trim(),
       description ? description.trim() : '',
       status || 'Pending',
+      priority || 'Medium',
+      due_date || null,
     ]);
     return result.rows[0];
   }
@@ -71,19 +103,21 @@ class TaskService {
   /**
    * Update full task details
    * @param {number} id
-   * @param {Object} updateData - { title, description, status }
+   * @param {Object} updateData - { title, description, status, priority, due_date }
    */
-  async updateTask(id, { title, description, status }) {
+  async updateTask(id, { title, description, status, priority, due_date }) {
     const sql = `
       UPDATE tasks
-      SET title = $1, description = $2, status = $3
-      WHERE id = $4
-      RETURNING id, title, description, status, created_at
+      SET title = $1, description = $2, status = $3, priority = COALESCE($4, priority), due_date = $5
+      WHERE id = $6
+      RETURNING id, title, description, status, priority, due_date, created_at
     `;
     const result = await db.query(sql, [
       title.trim(),
       description !== undefined ? (description ? description.trim() : '') : '',
       status,
+      priority || 'Medium',
+      due_date || null,
       id,
     ]);
     return result.rows[0] || null;
@@ -99,7 +133,7 @@ class TaskService {
       UPDATE tasks
       SET status = $1
       WHERE id = $2
-      RETURNING id, title, description, status, created_at
+      RETURNING id, title, description, status, priority, due_date, created_at
     `;
     const result = await db.query(sql, [status, id]);
     return result.rows[0] || null;

@@ -1,4 +1,5 @@
 const VALID_STATUSES = ['Pending', 'Completed'];
+const VALID_PRIORITIES = ['High', 'Medium', 'Low'];
 
 /**
  * Validate task ID route parameter
@@ -21,7 +22,7 @@ function validateTaskId(req, res, next) {
  * Validate task creation payload
  */
 function validateCreateTask(req, res, next) {
-  const { title, status } = req.body;
+  const { title, status, priority } = req.body;
 
   if (title === undefined || title === null) {
     return res.status(400).json({
@@ -47,6 +48,12 @@ function validateCreateTask(req, res, next) {
     });
   }
 
+  if (priority !== undefined && !VALID_PRIORITIES.includes(priority)) {
+    return res.status(400).json({
+      error: `Invalid priority '${priority}'. Allowed priorities: ${VALID_PRIORITIES.join(', ')}.`,
+    });
+  }
+
   next();
 }
 
@@ -54,7 +61,7 @@ function validateCreateTask(req, res, next) {
  * Validate full task update payload
  */
 function validateUpdateTask(req, res, next) {
-  const { title, status } = req.body;
+  const { title, status, priority } = req.body;
 
   if (title === undefined || title === null) {
     return res.status(400).json({
@@ -77,6 +84,12 @@ function validateUpdateTask(req, res, next) {
   if (status === undefined || !VALID_STATUSES.includes(status)) {
     return res.status(400).json({
       error: `Status is required and must be one of: ${VALID_STATUSES.join(', ')}.`,
+    });
+  }
+
+  if (priority !== undefined && !VALID_PRIORITIES.includes(priority)) {
+    return res.status(400).json({
+      error: `Invalid priority '${priority}'. Allowed priorities: ${VALID_PRIORITIES.join(', ')}.`,
     });
   }
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Header from './components/Header';
 import DashboardGreeting from './components/DashboardGreeting';
 import StatsOverview from './components/StatsOverview';
@@ -6,21 +6,29 @@ import TaskToolbar from './components/TaskToolbar';
 import TaskList from './components/TaskList';
 import TaskModal from './components/TaskModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
+import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import ToastContainer from './components/ToastContainer';
 
 import { useTheme } from './hooks/useTheme';
 import { useToast } from './hooks/useToast';
 import { useTasks } from './hooks/useTasks';
+import { exportToCSV, exportToJSON } from './utils/exportUtils';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
   const toast = useToast();
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+
   const {
     tasks,
     stats,
     loading,
     statusFilter,
     setStatusFilter,
+    priorityFilter,
+    setPriorityFilter,
+    sortBy,
+    setSortBy,
     searchQuery,
     setSearchQuery,
     actionLoading,
@@ -38,9 +46,53 @@ export default function App() {
     handleDeleteTask,
   } = useTasks(toast);
 
+  // Global Keyboard Shortcuts (N for New, D for Dark, ? for Help)
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+        return;
+      }
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault();
+        setIsAddModalOpen(true);
+      } else if (e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        toggleTheme();
+      } else if (e.key === '?') {
+        e.preventDefault();
+        setIsShortcutsOpen(true);
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toggleTheme, setIsAddModalOpen]);
+
   const handleResetFilters = () => {
     setStatusFilter('All');
+    setPriorityFilter('All');
     setSearchQuery('');
+  };
+
+  const handleExportCSV = () => {
+    const ok = exportToCSV(tasks);
+    if (ok) {
+      toast.success('Tasks exported to CSV successfully.');
+    } else {
+      toast.error('No tasks available to export.');
+    }
+  };
+
+  const handleExportJSON = () => {
+    const ok = exportToJSON(tasks);
+    if (ok) {
+      toast.success('Tasks exported to JSON successfully.');
+    } else {
+      toast.error('No tasks available to export.');
+    }
+  };
+
+  const handleCopyTitle = (title) => {
+    toast.info(`Copied "${title.slice(0, 30)}${title.length > 30 ? '...' : ''}" to clipboard.`);
   };
 
   return (
@@ -49,7 +101,14 @@ export default function App() {
       <ToastContainer toasts={toast.toasts} onRemove={toast.removeToast} />
 
       {/* App Navigation Header */}
-      <Header theme={theme} toggleTheme={toggleTheme} />
+      <Header
+        theme={theme}
+        toggleTheme={toggleTheme}
+        onOpenShortcuts={() => setIsShortcutsOpen(true)}
+        onExportCSV={handleExportCSV}
+        onExportJSON={handleExportJSON}
+        tasksCount={tasks.length}
+      />
 
       {/* Main Content Dashboard */}
       <main className="main-content-container">
@@ -64,6 +123,10 @@ export default function App() {
           <TaskToolbar
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
+            priorityFilter={priorityFilter}
+            setPriorityFilter={setPriorityFilter}
+            sortBy={sortBy}
+            setSortBy={setSortBy}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             onOpenAddModal={() => setIsAddModalOpen(true)}
@@ -74,11 +137,13 @@ export default function App() {
             tasks={tasks}
             loading={loading}
             statusFilter={statusFilter}
+            priorityFilter={priorityFilter}
             searchQuery={searchQuery}
             hasAnyTasks={stats.total > 0}
             onToggleStatus={handleToggleStatus}
             onEdit={(task) => setEditingTask(task)}
             onDelete={(task) => setDeletingTask(task)}
+            onCopyTitle={handleCopyTitle}
             onOpenAddModal={() => setIsAddModalOpen(true)}
             onResetFilters={handleResetFilters}
             actionLoading={actionLoading}
@@ -90,7 +155,7 @@ export default function App() {
       <footer className="app-footer">
         <div className="footer-container">
           <p className="footer-copyright">
-            TaskFlow &copy; {new Date().getFullYear()} — Personal Task Management System. Built with React, Vite, Express & PostgreSQL.
+            TaskFlow Pro &copy; {new Date().getFullYear()} — Personal Task Management System. Built with React, Vite, Express & PostgreSQL.
           </p>
         </div>
       </footer>
@@ -119,6 +184,12 @@ export default function App() {
         onClose={() => setDeletingTask(null)}
         onConfirm={handleDeleteTask}
         isDeleting={actionLoading}
+      />
+
+      {/* Keyboard Shortcuts Cheat Sheet Modal */}
+      <KeyboardShortcutsModal
+        isOpen={isShortcutsOpen}
+        onClose={() => setIsShortcutsOpen(false)}
       />
     </div>
   );

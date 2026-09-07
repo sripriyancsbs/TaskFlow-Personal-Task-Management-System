@@ -6,8 +6,8 @@ class TaskController {
    */
   async getTasks(req, res, next) {
     try {
-      const { status, search } = req.query;
-      const tasks = await taskService.getAllTasks({ status, search });
+      const { status, priority, search, sort } = req.query;
+      const tasks = await taskService.getAllTasks({ status, priority, search, sort });
       res.status(200).json({
         success: true,
         count: tasks.length,
@@ -30,6 +30,7 @@ class TaskController {
           total: Number(stats.total) || 0,
           pending: Number(stats.pending) || 0,
           completed: Number(stats.completed) || 0,
+          high_priority: Number(stats.high_priority) || 0,
         },
       });
     } catch (err) {
@@ -63,8 +64,8 @@ class TaskController {
    */
   async createTask(req, res, next) {
     try {
-      const { title, description, status } = req.body;
-      const newTask = await taskService.createTask({ title, description, status });
+      const { title, description, status, priority, due_date } = req.body;
+      const newTask = await taskService.createTask({ title, description, status, priority, due_date });
       res.status(201).json({
         success: true,
         message: 'Task created successfully.',
@@ -80,8 +81,8 @@ class TaskController {
    */
   async updateTask(req, res, next) {
     try {
-      const { title, description, status } = req.body;
-      const updatedTask = await taskService.updateTask(req.taskId, { title, description, status });
+      const { title, description, status, priority, due_date } = req.body;
+      const updatedTask = await taskService.updateTask(req.taskId, { title, description, status, priority, due_date });
       if (!updatedTask) {
         return res.status(404).json({
           success: false,

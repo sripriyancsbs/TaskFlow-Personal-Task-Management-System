@@ -11,6 +11,8 @@ export default function TaskModal({
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [status, setStatus] = useState('Pending');
+  const [priority, setPriority] = useState('Medium');
+  const [dueDate, setDueDate] = useState('');
   const [error, setError] = useState('');
 
   const titleInputRef = useRef(null);
@@ -23,14 +25,19 @@ export default function TaskModal({
         setTitle(initialData.title || '');
         setDescription(initialData.description || '');
         setStatus(initialData.status || 'Pending');
+        setPriority(initialData.priority || 'Medium');
+        setDueDate(
+          initialData.due_date ? new Date(initialData.due_date).toISOString().slice(0, 10) : ''
+        );
       } else {
         setTitle('');
         setDescription('');
         setStatus('Pending');
+        setPriority('Medium');
+        setDueDate('');
       }
       setError('');
 
-      // Focus input on next tick
       setTimeout(() => {
         titleInputRef.current?.focus();
       }, 50);
@@ -69,6 +76,8 @@ export default function TaskModal({
     const payload = {
       title: trimmedTitle,
       description: description.trim(),
+      priority,
+      due_date: dueDate ? new Date(dueDate).toISOString() : null,
       ...(isEditing ? { status } : {}),
     };
 
@@ -100,8 +109,8 @@ export default function TaskModal({
             </h3>
             <p className="modal-subtitle">
               {isEditing
-                ? 'Update your task details and status.'
-                : 'Add a new task to your personal workflow queue.'}
+                ? 'Update your task details, priority, and deadline.'
+                : 'Add a new priority task to your workflow queue.'}
             </p>
           </div>
           <button
@@ -148,15 +157,18 @@ export default function TaskModal({
 
           {/* Title Field */}
           <div className="form-group">
-            <label htmlFor="task-title-input" className="form-label">
-              Task Title <span className="label-required">*</span>
-            </label>
+            <div className="label-row-with-counter">
+              <label htmlFor="task-title-input" className="form-label">
+                Task Title <span className="label-required">*</span>
+              </label>
+              <span className="char-counter">{title.length}/255</span>
+            </div>
             <input
               id="task-title-input"
               ref={titleInputRef}
               type="text"
               className={`form-input ${error ? 'input-invalid' : ''}`}
-              placeholder="e.g., Review technical specification"
+              placeholder="e.g., Deploy production database migrations"
               value={title}
               onChange={(e) => {
                 setTitle(e.target.value);
@@ -168,6 +180,80 @@ export default function TaskModal({
             />
           </div>
 
+          {/* Priority Selection Pills */}
+          <div className="form-group">
+            <label className="form-label">Priority Level</label>
+            <div className="priority-pill-selector" role="radiogroup" aria-label="Priority">
+              <button
+                type="button"
+                className={`priority-select-btn priority-high ${priority === 'High' ? 'selected' : ''}`}
+                onClick={() => setPriority('High')}
+                disabled={isSaving}
+              >
+                <span>🔥 High</span>
+              </button>
+              <button
+                type="button"
+                className={`priority-select-btn priority-med ${priority === 'Medium' ? 'selected' : ''}`}
+                onClick={() => setPriority('Medium')}
+                disabled={isSaving}
+              >
+                <span>⚡ Medium</span>
+              </button>
+              <button
+                type="button"
+                className={`priority-select-btn priority-low ${priority === 'Low' ? 'selected' : ''}`}
+                onClick={() => setPriority('Low')}
+                disabled={isSaving}
+              >
+                <span>🌿 Low</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Due Date & Status Row */}
+          <div className="form-row-dual">
+            <div className="form-group flex-1">
+              <label htmlFor="task-due-date" className="form-label">
+                Due Date <span className="label-optional">(optional)</span>
+              </label>
+              <input
+                id="task-due-date"
+                type="date"
+                className="form-input"
+                value={dueDate}
+                onChange={(e) => setDueDate(e.target.value)}
+                disabled={isSaving}
+              />
+            </div>
+
+            {isEditing && (
+              <div className="form-group flex-1">
+                <label className="form-label">Status</label>
+                <div className="status-radio-group" role="radiogroup" aria-label="Task Status">
+                  <button
+                    type="button"
+                    className={`status-pill-option ${status === 'Pending' ? 'selected-pending' : ''}`}
+                    onClick={() => setStatus('Pending')}
+                    disabled={isSaving}
+                  >
+                    <span className="pill-dot" />
+                    <span>Pending</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`status-pill-option ${status === 'Completed' ? 'selected-completed' : ''}`}
+                    onClick={() => setStatus('Completed')}
+                    disabled={isSaving}
+                  >
+                    <span className="pill-dot" />
+                    <span>Completed</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Description Field */}
           <div className="form-group">
             <label htmlFor="task-desc-input" className="form-label">
@@ -177,39 +263,12 @@ export default function TaskModal({
               id="task-desc-input"
               rows={3}
               className="form-textarea"
-              placeholder="Add extra context, requirements, or links..."
+              placeholder="Add extra context, links, or sub-tasks..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               disabled={isSaving}
             />
           </div>
-
-          {/* Status Selection (only during edit mode) */}
-          {isEditing && (
-            <div className="form-group">
-              <label className="form-label">Status</label>
-              <div className="status-radio-group" role="radiogroup" aria-label="Task Status">
-                <button
-                  type="button"
-                  className={`status-pill-option ${status === 'Pending' ? 'selected-pending' : ''}`}
-                  onClick={() => setStatus('Pending')}
-                  disabled={isSaving}
-                >
-                  <span className="pill-dot" />
-                  <span>Pending</span>
-                </button>
-                <button
-                  type="button"
-                  className={`status-pill-option ${status === 'Completed' ? 'selected-completed' : ''}`}
-                  onClick={() => setStatus('Completed')}
-                  disabled={isSaving}
-                >
-                  <span className="pill-dot" />
-                  <span>Completed</span>
-                </button>
-              </div>
-            </div>
-          )}
 
           {/* Modal Actions */}
           <div className="modal-actions-row">

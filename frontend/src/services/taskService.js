@@ -1,10 +1,5 @@
-// Default to relative /api when using Vite proxy or Vercel serverless,
-// or use explicit VITE_API_URL if configured.
 const API_BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/+$/, '');
 
-/**
- * Custom error wrapper for API errors
- */
 export class ApiError extends Error {
   constructor(message, status = 500, details = null) {
     super(message);
@@ -14,9 +9,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Internal fetch wrapper with standardized error handling and JSON parsing
- */
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const config = {
@@ -46,23 +38,21 @@ async function request(endpoint, options = {}) {
     if (err instanceof ApiError) {
       throw err;
     }
-    // Network disconnection or CORS failure
     throw new ApiError('Unable to connect to the server. Please verify your connection.', 0, err);
   }
 }
 
-/**
- * Task Service API client
- */
 export const taskService = {
   /**
-   * Fetch all tasks with optional filters
-   * @param {Object} params - { status, search }
+   * Fetch all tasks with optional filters and sorting
+   * @param {Object} params - { status, priority, search, sort }
    */
-  async getTasks({ status, search } = {}) {
+  async getTasks({ status, priority, search, sort } = {}) {
     const query = new URLSearchParams();
     if (status && status !== 'All') query.append('status', status);
+    if (priority && priority !== 'All') query.append('priority', priority);
     if (search && search.trim()) query.append('search', search.trim());
+    if (sort) query.append('sort', sort);
 
     const queryString = query.toString() ? `?${query.toString()}` : '';
     const res = await request(`/tasks${queryString}`);
@@ -74,7 +64,7 @@ export const taskService = {
    */
   async getStats() {
     const res = await request('/tasks/stats');
-    return res.data || { total: 0, pending: 0, completed: 0 };
+    return res.data || { total: 0, pending: 0, completed: 0, high_priority: 0 };
   },
 
   /**
@@ -88,7 +78,7 @@ export const taskService = {
 
   /**
    * Create a new task
-   * @param {Object} taskData - { title, description, status }
+   * @param {Object} taskData - { title, description, status, priority, due_date }
    */
   async createTask(taskData) {
     const res = await request('/tasks', {
@@ -101,7 +91,7 @@ export const taskService = {
   /**
    * Full update of task
    * @param {number|string} id
-   * @param {Object} taskData - { title, description, status }
+   * @param {Object} taskData - { title, description, status, priority, due_date }
    */
   async updateTask(id, taskData) {
     const res = await request(`/tasks/${id}`, {

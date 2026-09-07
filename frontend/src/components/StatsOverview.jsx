@@ -1,11 +1,22 @@
 import React from 'react';
 
 export default function StatsOverview({ stats }) {
-  const { total = 0, pending = 0, completed = 0 } = stats;
+  const { total = 0, pending = 0, completed = 0, high_priority = 0 } = stats;
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const isAllDone = total > 0 && completed === total;
 
   return (
     <section className="stats-overview-section" aria-label="Task Statistics">
+      {/* 100% Completion Celebration Banner */}
+      {isAllDone && (
+        <div className="celebration-banner" role="status">
+          <div className="celebration-icon">🎉</div>
+          <div className="celebration-text">
+            <strong>Outstanding work!</strong> You have cleared 100% of your tasks. Take a moment to celebrate your productivity!
+          </div>
+        </div>
+      )}
+
       <div className="stats-grid">
         {/* Total Tasks Card */}
         <div className="stat-card stat-card-total">
@@ -61,6 +72,33 @@ export default function StatsOverview({ stats }) {
           </div>
           <div className="stat-footer">
             <span className="stat-subtext">Needs your focus & action</span>
+          </div>
+        </div>
+
+        {/* High Priority Card */}
+        <div className="stat-card stat-card-urgent">
+          <div className="stat-card-header">
+            <span className="stat-label">HIGH PRIORITY</span>
+            <div className="stat-icon-wrapper urgent-icon-bg">
+              <svg
+                className="stat-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+              </svg>
+            </div>
+          </div>
+          <div className="stat-value-row">
+            <span className="stat-value" id="stat-urgent">{high_priority}</span>
+            {high_priority > 0 && <span className="stat-badge-urgent">Action needed</span>}
+          </div>
+          <div className="stat-footer">
+            <span className="stat-subtext">Urgent items awaiting review</span>
           </div>
         </div>
 

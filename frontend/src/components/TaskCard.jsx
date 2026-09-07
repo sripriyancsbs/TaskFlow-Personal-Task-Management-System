@@ -1,48 +1,114 @@
-import React from 'react';
-import { formatDate } from '../utils/dateUtils';
+import React, { useState } from 'react';
+import { formatDate, formatDueDate } from '../utils/dateUtils';
 
 export default function TaskCard({
   task,
   onToggleStatus,
   onEdit,
   onDelete,
+  onCopyTitle,
   isActionLoading,
 }) {
   const isCompleted = task.status === 'Completed';
+  const priority = task.priority || 'Medium';
+  const dueDateInfo = formatDueDate(task.due_date, task.status);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (e) => {
+    e.stopPropagation();
+    navigator.clipboard?.writeText(task.title);
+    setCopied(true);
+    onCopyTitle?.(task.title);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
     <article
-      className={`task-card ${isCompleted ? 'task-card-completed' : 'task-card-pending'}`}
+      className={`task-card ${isCompleted ? 'task-card-completed' : 'task-card-pending'} priority-${priority.toLowerCase()}`}
       data-task-id={task.id}
     >
       <div className="card-top-row">
-        <div className="card-status-date-group">
-          <span
-            className={`status-badge ${isCompleted ? 'badge-completed' : 'badge-pending'}`}
-          >
+        <div className="card-meta-badges">
+          {/* Status Badge */}
+          <span className={`status-badge ${isCompleted ? 'badge-completed' : 'badge-pending'}`}>
             <span className="badge-dot" />
             {task.status}
           </span>
-          <span className="card-date-text">
-            <svg
-              className="calendar-mini-icon"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-              <line x1="16" y1="2" x2="16" y2="6" />
-              <line x1="8" y1="2" x2="8" y2="6" />
-              <line x1="3" y1="10" x2="21" y2="10" />
-            </svg>
-            {formatDate(task.created_at)}
+
+          {/* Priority Badge */}
+          <span className={`priority-badge priority-badge-${priority.toLowerCase()}`}>
+            {priority === 'High' && <span className="priority-fire">🔥</span>}
+            {priority === 'Medium' && <span className="priority-bolt">⚡</span>}
+            {priority === 'Low' && <span className="priority-leaf">🌿</span>}
+            <span>{priority}</span>
           </span>
+
+          {/* Due Date Pill if specified */}
+          {dueDateInfo && (
+            <span
+              className={`due-date-pill ${
+                dueDateInfo.isOverdue
+                  ? 'pill-overdue'
+                  : dueDateInfo.isToday
+                  ? 'pill-today'
+                  : dueDateInfo.isTomorrow
+                  ? 'pill-tomorrow'
+                  : 'pill-future'
+              }`}
+            >
+              <svg
+                className="clock-mini-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span>{dueDateInfo.text}</span>
+            </span>
+          )}
         </div>
 
         <div className="card-actions-group">
+          {/* Copy Title Action */}
+          <button
+            type="button"
+            className="card-action-btn copy-action-btn"
+            onClick={handleCopy}
+            title={copied ? 'Copied!' : 'Copy title'}
+            aria-label="Copy task title"
+          >
+            {copied ? (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="copied-check-icon"
+              >
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            ) : (
+              <svg
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              </svg>
+            )}
+          </button>
+
           {/* Edit Button */}
           <button
             type="button"
@@ -137,6 +203,10 @@ export default function TaskCard({
             </>
           )}
         </button>
+
+        <span className="card-created-date" title={`Created: ${task.created_at}`}>
+          Created {formatDate(task.created_at)}
+        </span>
       </div>
     </article>
   );

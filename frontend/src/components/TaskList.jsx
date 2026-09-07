@@ -6,11 +6,13 @@ export default function TaskList({
   tasks,
   loading,
   statusFilter,
+  priorityFilter,
   searchQuery,
   hasAnyTasks,
   onToggleStatus,
   onEdit,
   onDelete,
+  onCopyTitle,
   onOpenAddModal,
   onResetFilters,
   actionLoading,
@@ -34,6 +36,7 @@ export default function TaskList({
     return (
       <EmptyState
         statusFilter={statusFilter}
+        priorityFilter={priorityFilter}
         searchQuery={searchQuery}
         hasAnyTasks={hasAnyTasks}
         onOpenAddModal={onOpenAddModal}
@@ -51,6 +54,7 @@ export default function TaskList({
           onToggleStatus={onToggleStatus}
           onEdit={onEdit}
           onDelete={onDelete}
+          onCopyTitle={onCopyTitle}
           isActionLoading={actionLoading}
         />
       ))}

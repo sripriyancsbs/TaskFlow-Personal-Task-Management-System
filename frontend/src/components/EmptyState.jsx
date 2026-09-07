@@ -2,6 +2,7 @@ import React from 'react';
 
 export default function EmptyState({
   statusFilter,
+  priorityFilter,
   searchQuery,
   hasAnyTasks,
   onOpenAddModal,
@@ -14,6 +15,10 @@ export default function EmptyState({
   if (searchQuery && searchQuery.trim()) {
     title = 'No tasks found';
     subtitle = `No results matching "${searchQuery}". Try a different keyword or reset filters.`;
+    showAddBtn = false;
+  } else if (priorityFilter && priorityFilter !== 'All') {
+    title = `No ${priorityFilter.toLowerCase()} priority tasks`;
+    subtitle = `There are currently no tasks marked with ${priorityFilter} priority.`;
     showAddBtn = false;
   } else if (statusFilter === 'Pending') {
     title = 'No pending tasks';
@@ -77,7 +82,7 @@ export default function EmptyState({
               className="btn-secondary empty-reset-btn"
               onClick={onResetFilters}
             >
-              <span>Clear Filter / Search</span>
+              <span>Clear Filters & Search</span>
             </button>
           )}
         </div>

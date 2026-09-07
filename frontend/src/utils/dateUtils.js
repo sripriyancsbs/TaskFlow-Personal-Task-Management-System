@@ -1,5 +1,5 @@
 /**
- * Format ISO date string into a user-friendly format (e.g., 'Sep 7, 2026 • 10:30 AM')
+ * Format ISO date string into a user-friendly format (e.g., 'Sep 7, 2026')
  * @param {string|Date} dateInput
  * @returns {string}
  */
@@ -16,29 +16,60 @@ export function formatDate(dateInput) {
 }
 
 /**
- * Format relative time (e.g. 'Just now', '2 hours ago', 'Yesterday')
+ * Format due dates with smart relative statuses (Overdue, Due Today, Due Tomorrow)
  * @param {string|Date} dateInput
- * @returns {string}
+ * @param {string} status - 'Pending' | 'Completed'
+ * @returns {Object} { text, isOverdue, isToday, isTomorrow, isUpcoming }
  */
-export function formatRelativeDate(dateInput) {
-  if (!dateInput) return '';
+export function formatDueDate(dateInput, status = 'Pending') {
+  if (!dateInput) return null;
   const date = new Date(dateInput);
-  if (isNaN(date.getTime())) return '';
+  if (isNaN(date.getTime())) return null;
 
   const now = new Date();
-  const diffMs = now - date;
-  const diffSec = Math.floor(diffMs / 1000);
-  const diffMin = Math.floor(diffSec / 60);
-  const diffHour = Math.floor(diffMin / 60);
-  const diffDay = Math.floor(diffHour / 24);
+  // Strip times to compare calendar dates
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((target - today) / (1000 * 60 * 60 * 24));
 
-  if (diffSec < 60) return 'Just now';
-  if (diffMin < 60) return `${diffMin}m ago`;
-  if (diffHour < 24) return `${diffHour}h ago`;
-  if (diffDay === 1) return 'Yesterday';
-  if (diffDay < 7) return `${diffDay}d ago`;
+  if (diffDays < 0) {
+    const isCompleted = status === 'Completed';
+    return {
+      text: isCompleted ? `Was due ${formatDate(date)}` : `Overdue (${Math.abs(diffDays)}d ago)`,
+      isOverdue: !isCompleted,
+      isToday: false,
+      isTomorrow: false,
+      isUpcoming: false,
+    };
+  }
 
-  return formatDate(date);
+  if (diffDays === 0) {
+    return {
+      text: 'Due Today',
+      isOverdue: false,
+      isToday: true,
+      isTomorrow: false,
+      isUpcoming: false,
+    };
+  }
+
+  if (diffDays === 1) {
+    return {
+      text: 'Due Tomorrow',
+      isOverdue: false,
+      isToday: false,
+      isTomorrow: true,
+      isUpcoming: false,
+    };
+  }
+
+  return {
+    text: `Due ${formatDate(date)}`,
+    isOverdue: false,
+    isToday: false,
+    isTomorrow: false,
+    isUpcoming: true,
+  };
 }
 
 /**

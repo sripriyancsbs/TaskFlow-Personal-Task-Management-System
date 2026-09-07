@@ -3,9 +3,11 @@ import { taskService } from '../services/taskService';
 
 export function useTasks(toast) {
   const [tasks, setTasks] = useState([]);
-  const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0 });
+  const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0, high_priority: 0 });
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('All');
+  const [priorityFilter, setPriorityFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('newest');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -39,13 +41,15 @@ export function useTasks(toast) {
     }
   }, []);
 
-  // Fetch tasks according to current filter and debounced search
+  // Fetch tasks according to current filter, priority, sort, and debounced search
   const fetchTasks = useCallback(async (showSkeleton = false) => {
     if (showSkeleton) setLoading(true);
     try {
       const data = await taskService.getTasks({
         status: statusFilter,
+        priority: priorityFilter,
         search: debouncedSearch,
+        sort: sortBy,
       });
       setTasks(data);
     } catch (err) {
@@ -54,9 +58,9 @@ export function useTasks(toast) {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, debouncedSearch]);
+  }, [statusFilter, priorityFilter, debouncedSearch, sortBy]);
 
-  // Initial load & on filter/search changes
+  // Trigger fetch whenever filters, sorting, or debounced search changes
   useEffect(() => {
     fetchTasks(true);
   }, [fetchTasks]);
@@ -72,7 +76,6 @@ export function useTasks(toast) {
       await taskService.createTask(taskData);
       toastRef.current?.success('Task created successfully.');
       setIsAddModalOpen(false);
-      // Refresh list and stats
       await Promise.all([fetchTasks(false), fetchStats()]);
       return true;
     } catch (err) {
@@ -90,7 +93,6 @@ export function useTasks(toast) {
       await taskService.updateTask(id, taskData);
       toastRef.current?.success('Task updated successfully.');
       setEditingTask(null);
-      // Refresh list and stats
       await Promise.all([fetchTasks(false), fetchStats()]);
       return true;
     } catch (err) {
@@ -107,7 +109,6 @@ export function useTasks(toast) {
     const originalTasks = [...tasks];
     const originalStats = { ...stats };
 
-    // Optimistic UI update
     setTasks((prev) =>
       prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t))
     );
@@ -124,7 +125,6 @@ export function useTasks(toast) {
       );
       fetchStats();
     } catch (err) {
-      // Revert on error
       setTasks(originalTasks);
       setStats(originalStats);
       toastRef.current?.error(err.message || 'Failed to update task status.');
@@ -138,13 +138,16 @@ export function useTasks(toast) {
     const originalStats = { ...stats };
     const taskToDelete = tasks.find((t) => t.id === id);
 
-    // Optimistically remove
     setTasks((prev) => prev.filter((t) => t.id !== id));
     if (taskToDelete) {
       setStats((prev) => ({
         total: Math.max(0, prev.total - 1),
         pending: taskToDelete.status === 'Pending' ? Math.max(0, prev.pending - 1) : prev.pending,
         completed: taskToDelete.status === 'Completed' ? Math.max(0, prev.completed - 1) : prev.completed,
+        high_priority:
+          taskToDelete.priority === 'High' && taskToDelete.status === 'Pending'
+            ? Math.max(0, prev.high_priority - 1)
+            : prev.high_priority,
       }));
     }
 
@@ -155,7 +158,6 @@ export function useTasks(toast) {
       fetchStats();
       return true;
     } catch (err) {
-      // Rollback
       setTasks(originalTasks);
       setStats(originalStats);
       toastRef.current?.error(err.message || 'Failed to delete task.');
@@ -171,6 +173,10 @@ export function useTasks(toast) {
     loading,
     statusFilter,
     setStatusFilter,
+    priorityFilter,
+    setPriorityFilter,
+    sortBy,
+    setSortBy,
     searchQuery,
     setSearchQuery,
     actionLoading,
