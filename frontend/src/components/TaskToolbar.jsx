@@ -94,10 +94,10 @@ export default function TaskToolbar({
 
         {/* Priority Filter Dropdown */}
         <div className="ref-select-wrap">
-          <label htmlFor="priority-filter-dropdown" className="sr-only">Filter by Priority</label>
           <select
             id="priority-filter-dropdown"
             className="ref-select"
+            aria-label="Filter by Priority"
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
           >
@@ -110,10 +110,10 @@ export default function TaskToolbar({
 
         {/* Sort Dropdown */}
         <div className="ref-select-wrap">
-          <label htmlFor="sort-tasks-dropdown" className="sr-only">Sort Tasks</label>
           <select
             id="sort-tasks-dropdown"
             className="ref-select"
+            aria-label="Sort Tasks"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >

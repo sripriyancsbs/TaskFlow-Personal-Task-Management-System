@@ -11,6 +11,7 @@ import TaskList from './components/TaskList';
 import TaskDetailPanel from './components/TaskDetailPanel';
 import TaskModal from './components/TaskModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
+import ActivityTimeline from './components/ActivityTimeline';
 import CommandPalette from './components/CommandPalette';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import ToastContainer from './components/ToastContainer';
@@ -220,63 +221,314 @@ export default function App() {
           <div className="reference-body-columns">
             {/* Center Main Productivity Workspace */}
             <main className="reference-center-workspace">
-              {/* Top Hero Banner matching reference */}
-              <ProductivityHero />
+              {/* TAB 1: DASHBOARD (Full visual match to reference image) */}
+              {activeNav === 'dashboard' && (
+                <>
+                  {/* Top Hero Banner matching reference */}
+                  <ProductivityHero />
 
-              {/* 4 Horizontal Metric Cards matching reference */}
-              <StatsOverview stats={stats} />
+                  {/* 4 Horizontal Metric Cards matching reference */}
+                  <StatsOverview stats={stats} />
 
-              {/* Today's Focus Card matching reference */}
-              <TodayFocus
-                tasks={tasks}
-                onStartFocus={handleStartFocus}
-                onToggleStatus={handleToggleStatus}
-                onOpenAddModal={() => setIsAddModalOpen(true)}
-                isActionLoading={actionLoading}
-              />
+                  {/* Today's Focus Card matching reference */}
+                  <TodayFocus
+                    tasks={tasks}
+                    onStartFocus={handleStartFocus}
+                    onToggleStatus={handleToggleStatus}
+                    onOpenAddModal={() => setIsAddModalOpen(true)}
+                    isActionLoading={actionLoading}
+                  />
 
-              {/* My Tasks Section */}
-              <section className="my-tasks-section-wrap" aria-label="My Tasks Workspace">
-                <TaskToolbar
-                  statusFilter={statusFilter}
-                  setStatusFilter={setStatusFilter}
-                  priorityFilter={priorityFilter}
-                  setPriorityFilter={setPriorityFilter}
-                  sortBy={sortBy}
-                  setSortBy={setSortBy}
-                  viewMode={viewMode}
-                  setViewMode={setViewMode}
-                  searchQuery={searchQuery}
-                  setSearchQuery={setSearchQuery}
-                  onOpenAddModal={() => setIsAddModalOpen(true)}
-                  stats={stats}
-                />
+                  {/* My Tasks Section */}
+                  <section className="my-tasks-section-wrap" aria-label="My Tasks Workspace">
+                    <TaskToolbar
+                      statusFilter={statusFilter}
+                      setStatusFilter={setStatusFilter}
+                      priorityFilter={priorityFilter}
+                      setPriorityFilter={setPriorityFilter}
+                      sortBy={sortBy}
+                      setSortBy={setSortBy}
+                      viewMode={viewMode}
+                      setViewMode={setViewMode}
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                      onOpenAddModal={() => setIsAddModalOpen(true)}
+                      stats={stats}
+                    />
 
-                <TaskList
-                  tasks={displayedTasks}
-                  loading={loading}
-                  statusFilter={statusFilter}
-                  priorityFilter={priorityFilter}
-                  searchQuery={searchQuery}
-                  hasAnyTasks={stats.total > 0}
-                  viewMode={viewMode}
-                  onToggleStatus={handleToggleStatus}
-                  onEdit={(task) => setEditingTask(task)}
-                  onDelete={(task) => setDeletingTask(task)}
-                  onSelectTask={(task) => setSelectedDetailTask(task)}
-                  onStartFocus={handleStartFocus}
-                  onOpenAddModal={() => setIsAddModalOpen(true)}
-                  onResetFilters={() => {
-                    setStatusFilter('All');
-                    setPriorityFilter('All');
-                    setSearchQuery('');
-                  }}
-                  actionLoading={actionLoading}
-                  focusedTaskId={focusedTaskId}
-                  onSelectFocusedTaskId={(id) => setFocusedTaskId(id)}
-                  onExitFocus={() => setViewMode('list')}
-                />
-              </section>
+                    <TaskList
+                      tasks={displayedTasks}
+                      loading={loading}
+                      statusFilter={statusFilter}
+                      priorityFilter={priorityFilter}
+                      searchQuery={searchQuery}
+                      hasAnyTasks={stats.total > 0}
+                      viewMode={viewMode}
+                      onToggleStatus={handleToggleStatus}
+                      onEdit={(task) => setEditingTask(task)}
+                      onDelete={(task) => setDeletingTask(task)}
+                      onSelectTask={(task) => setSelectedDetailTask(task)}
+                      onStartFocus={handleStartFocus}
+                      onOpenAddModal={() => setIsAddModalOpen(true)}
+                      onResetFilters={() => {
+                        setStatusFilter('All');
+                        setPriorityFilter('All');
+                        setSearchQuery('');
+                      }}
+                      actionLoading={actionLoading}
+                      focusedTaskId={focusedTaskId}
+                      onSelectFocusedTaskId={(id) => setFocusedTaskId(id)}
+                      onExitFocus={() => setViewMode('list')}
+                    />
+                  </section>
+                </>
+              )}
+
+              {/* TAB 2: MY TASKS (Clean, dedicated tasks view without dashboard clutter) */}
+              {activeNav === 'tasks' && (
+                <section className="my-tasks-section-wrap" aria-label="My Tasks Workspace">
+                  <TaskToolbar
+                    statusFilter={statusFilter}
+                    setStatusFilter={setStatusFilter}
+                    priorityFilter={priorityFilter}
+                    setPriorityFilter={setPriorityFilter}
+                    sortBy={sortBy}
+                    setSortBy={setSortBy}
+                    viewMode={viewMode}
+                    setViewMode={setViewMode}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    onOpenAddModal={() => setIsAddModalOpen(true)}
+                    stats={stats}
+                  />
+
+                  <TaskList
+                    tasks={displayedTasks}
+                    loading={loading}
+                    statusFilter={statusFilter}
+                    priorityFilter={priorityFilter}
+                    searchQuery={searchQuery}
+                    hasAnyTasks={stats.total > 0}
+                    viewMode={viewMode}
+                    onToggleStatus={handleToggleStatus}
+                    onEdit={(task) => setEditingTask(task)}
+                    onDelete={(task) => setDeletingTask(task)}
+                    onSelectTask={(task) => setSelectedDetailTask(task)}
+                    onStartFocus={handleStartFocus}
+                    onOpenAddModal={() => setIsAddModalOpen(true)}
+                    onResetFilters={() => {
+                      setStatusFilter('All');
+                      setPriorityFilter('All');
+                      setSearchQuery('');
+                    }}
+                    actionLoading={actionLoading}
+                    focusedTaskId={focusedTaskId}
+                    onSelectFocusedTaskId={(id) => setFocusedTaskId(id)}
+                    onExitFocus={() => setViewMode('list')}
+                  />
+                </section>
+              )}
+
+              {/* TAB 3: TODAY (Today's Priorities) */}
+              {activeNav === 'today' && (
+                <section className="my-tasks-section-wrap" aria-label="Today's Priorities">
+                  <div className="tab-dedicated-header">
+                    <h2 className="tab-dedicated-title">Today's Priorities</h2>
+                    <span className="tab-dedicated-badge">{displayedTasks.length} Due Today</span>
+                  </div>
+
+                  <TaskList
+                    tasks={displayedTasks}
+                    loading={loading}
+                    statusFilter={statusFilter}
+                    priorityFilter={priorityFilter}
+                    searchQuery={searchQuery}
+                    hasAnyTasks={stats.total > 0}
+                    viewMode={viewMode}
+                    onToggleStatus={handleToggleStatus}
+                    onEdit={(task) => setEditingTask(task)}
+                    onDelete={(task) => setDeletingTask(task)}
+                    onSelectTask={(task) => setSelectedDetailTask(task)}
+                    onStartFocus={handleStartFocus}
+                    onOpenAddModal={() => setIsAddModalOpen(true)}
+                    onResetFilters={() => setSearchQuery('')}
+                    actionLoading={actionLoading}
+                    focusedTaskId={focusedTaskId}
+                    onSelectFocusedTaskId={(id) => setFocusedTaskId(id)}
+                    onExitFocus={() => setViewMode('list')}
+                  />
+                </section>
+              )}
+
+              {/* TAB 4: UPCOMING (Upcoming Milestones) */}
+              {activeNav === 'upcoming' && (
+                <section className="my-tasks-section-wrap" aria-label="Upcoming Milestones">
+                  <div className="tab-dedicated-header">
+                    <h2 className="tab-dedicated-title">Upcoming Tasks</h2>
+                    <span className="tab-dedicated-badge">{displayedTasks.length} Scheduled</span>
+                  </div>
+
+                  <TaskList
+                    tasks={displayedTasks}
+                    loading={loading}
+                    statusFilter={statusFilter}
+                    priorityFilter={priorityFilter}
+                    searchQuery={searchQuery}
+                    hasAnyTasks={stats.total > 0}
+                    viewMode={viewMode}
+                    onToggleStatus={handleToggleStatus}
+                    onEdit={(task) => setEditingTask(task)}
+                    onDelete={(task) => setDeletingTask(task)}
+                    onSelectTask={(task) => setSelectedDetailTask(task)}
+                    onStartFocus={handleStartFocus}
+                    onOpenAddModal={() => setIsAddModalOpen(true)}
+                    onResetFilters={() => setSearchQuery('')}
+                    actionLoading={actionLoading}
+                    focusedTaskId={focusedTaskId}
+                    onSelectFocusedTaskId={(id) => setFocusedTaskId(id)}
+                    onExitFocus={() => setViewMode('list')}
+                  />
+                </section>
+              )}
+
+              {/* TAB 5: COMPLETED (Completed Archive) */}
+              {activeNav === 'completed' && (
+                <section className="my-tasks-section-wrap" aria-label="Completed Archive">
+                  <div className="tab-dedicated-header">
+                    <h2 className="tab-dedicated-title">Completed Tasks</h2>
+                    <span className="tab-dedicated-badge">{stats.completed} Completed</span>
+                  </div>
+
+                  <TaskList
+                    tasks={tasks.filter((t) => t.status === 'Completed')}
+                    loading={loading}
+                    statusFilter="Completed"
+                    priorityFilter={priorityFilter}
+                    searchQuery={searchQuery}
+                    hasAnyTasks={stats.completed > 0}
+                    viewMode={viewMode}
+                    onToggleStatus={handleToggleStatus}
+                    onEdit={(task) => setEditingTask(task)}
+                    onDelete={(task) => setDeletingTask(task)}
+                    onSelectTask={(task) => setSelectedDetailTask(task)}
+                    onStartFocus={handleStartFocus}
+                    onOpenAddModal={() => setIsAddModalOpen(true)}
+                    onResetFilters={() => setSearchQuery('')}
+                    actionLoading={actionLoading}
+                    focusedTaskId={focusedTaskId}
+                    onSelectFocusedTaskId={(id) => setFocusedTaskId(id)}
+                    onExitFocus={() => setViewMode('list')}
+                  />
+                </section>
+              )}
+
+              {/* TAB 6: FOCUS MODE (Distraction-Free Sprint) */}
+              {activeNav === 'focus' && (
+                <section className="my-tasks-section-wrap" aria-label="Focus Sprint">
+                  <TaskList
+                    tasks={tasks}
+                    loading={loading}
+                    statusFilter="Pending"
+                    priorityFilter="All"
+                    searchQuery=""
+                    hasAnyTasks={stats.total > 0}
+                    viewMode="focus"
+                    onToggleStatus={handleToggleStatus}
+                    onEdit={(task) => setEditingTask(task)}
+                    onDelete={(task) => setDeletingTask(task)}
+                    onSelectTask={(task) => setSelectedDetailTask(task)}
+                    onStartFocus={handleStartFocus}
+                    onOpenAddModal={() => setIsAddModalOpen(true)}
+                    onResetFilters={() => {}}
+                    actionLoading={actionLoading}
+                    focusedTaskId={focusedTaskId}
+                    onSelectFocusedTaskId={(id) => setFocusedTaskId(id)}
+                    onExitFocus={() => setActiveNav('dashboard')}
+                  />
+                </section>
+              )}
+
+              {/* TAB 7: INSIGHTS */}
+              {activeNav === 'insights' && (
+                <section className="insights-view-stack" aria-label="Productivity Insights">
+                  <div className="tab-dedicated-header">
+                    <h2 className="tab-dedicated-title">Productivity Insights</h2>
+                  </div>
+                  <StatsOverview stats={stats} />
+                  <ActivityTimeline
+                    tasks={tasks}
+                    onSelectTask={(t) => setSelectedDetailTask(t)}
+                  />
+                </section>
+              )}
+
+              {/* TAB 8: SETTINGS */}
+              {activeNav === 'settings' && (
+                <section className="settings-view-stack" aria-label="Settings">
+                  <div className="tab-dedicated-header">
+                    <h2 className="tab-dedicated-title">Settings & Preferences</h2>
+                    <span className="tab-dedicated-badge">TaskFlow v2.4 Pro</span>
+                  </div>
+
+                  <div className="settings-card-group">
+                    {/* Appearance */}
+                    <div className="ref-metric-card" style={{ height: 'auto', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <h4 style={{ fontWeight: 700, fontSize: '15px' }}>Appearance</h4>
+                      <p style={{ color: 'var(--ref-text-secondary)', fontSize: '13px' }}>
+                        Choose your interface theme. Current: <strong style={{ color: 'var(--ref-text-primary)' }}>{theme === 'dark' ? 'Dark Futuristic' : 'Sleek Light'}</strong>
+                      </p>
+                      <button
+                        type="button"
+                        className="btn-start-focus-electric"
+                        onClick={toggleTheme}
+                        style={{ alignSelf: 'flex-start' }}
+                      >
+                        {theme === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+                      </button>
+                    </div>
+
+                    {/* Keyboard Controls */}
+                    <div className="ref-metric-card" style={{ height: 'auto', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <h4 style={{ fontWeight: 700, fontSize: '15px' }}>Keyboard Shortcuts</h4>
+                      <p style={{ color: 'var(--ref-text-secondary)', fontSize: '13px' }}>
+                        Press <kbd>N</kbd> new task, <kbd>Ctrl + K</kbd> command palette, <kbd>/</kbd> search, <kbd>?</kbd> modal.
+                      </p>
+                      <button
+                        type="button"
+                        className="btn-add-task-reference"
+                        onClick={() => setIsShortcutsOpen(true)}
+                        style={{ alignSelf: 'flex-start' }}
+                      >
+                        Open Shortcuts Cheatsheet
+                      </button>
+                    </div>
+
+                    {/* Data Backup & Export */}
+                    <div className="ref-metric-card" style={{ height: 'auto', padding: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <h4 style={{ fontWeight: 700, fontSize: '15px' }}>Data Backup</h4>
+                      <p style={{ color: 'var(--ref-text-secondary)', fontSize: '13px' }}>
+                        Export your tasks to portable formats for backup or reporting.
+                      </p>
+                      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="ref-status-pill pill-active-electric"
+                          onClick={handleExportCSV}
+                        >
+                          Export CSV
+                        </button>
+                        <button
+                          type="button"
+                          className="ref-status-pill"
+                          onClick={handleExportJSON}
+                        >
+                          Export JSON
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
             </main>
 
             {/* 3. Right Information Rail matching reference */}

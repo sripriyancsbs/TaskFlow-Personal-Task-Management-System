@@ -86,7 +86,7 @@ export default function Sidebar({
       <div className="sidebar-brand-block">
         <div className="sidebar-brand-row">
           <div className="sidebar-lightning-icon">
-            <svg className="w-5 h-5 text-blue-500" viewBox="0 0 24 24" fill="currentColor">
+            <svg className="w-5 h-5 text-blue-500" width={20} height={20} viewBox="0 0 24 24" fill="currentColor">
               <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
             </svg>
           </div>
@@ -107,13 +107,7 @@ export default function Sidebar({
                 <button
                   type="button"
                   className={`sidebar-menu-btn ${isActive ? 'btn-active-dashboard' : ''}`}
-                  onClick={() => {
-                    if (item.id === 'settings') {
-                      onOpenShortcuts();
-                    } else {
-                      onSelectNav(item.id);
-                    }
-                  }}
+                  onClick={() => onSelectNav(item.id)}
                   aria-current={isActive ? 'page' : undefined}
                 >
                   <span className="sidebar-btn-icon-wrap">{item.icon}</span>

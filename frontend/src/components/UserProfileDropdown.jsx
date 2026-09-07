@@ -59,7 +59,7 @@ export default function UserProfileDropdown({
           }}
           role="menuitem"
         >
-          <IconSettings className="w-4 h-4 mr-2 text-muted" />
+          <IconSettings width={16} height={16} className="profile-item-icon text-muted" />
           <span>Keyboard Shortcuts</span>
           <kbd className="profile-item-kbd">?</kbd>
         </button>
@@ -74,12 +74,12 @@ export default function UserProfileDropdown({
         >
           {theme === 'dark' ? (
             <>
-              <IconSun className="w-4 h-4 mr-2 text-amber-400" />
+              <IconSun width={16} height={16} className="profile-item-icon text-amber-400" />
               <span>Switch to Light Theme</span>
             </>
           ) : (
             <>
-              <IconMoon className="w-4 h-4 mr-2 text-indigo-400" />
+              <IconMoon width={16} height={16} className="profile-item-icon text-indigo-400" />
               <span>Switch to Dark Theme</span>
             </>
           )}
