@@ -9,7 +9,6 @@ import TaskList from './components/TaskList';
 import TaskDetailPanel from './components/TaskDetailPanel';
 import TaskModal from './components/TaskModal';
 import DeleteConfirmModal from './components/DeleteConfirmModal';
-import ActivityTimeline from './components/ActivityTimeline';
 import InsightsView from './components/InsightsView';
 import CommandPalette from './components/CommandPalette';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
@@ -75,6 +74,7 @@ export default function App() {
   // Handle navigation selection
   const handleSelectNav = (navId) => {
     setActiveNav(navId);
+    setSelectedDetailTask(null);
     if (navId === 'completed') {
       setStatusFilter('Completed');
     } else if (navId === 'today' || navId === 'upcoming') {
@@ -257,7 +257,7 @@ export default function App() {
           />
 
           {/* Body Columns: Center Workspace + Right Information Rail */}
-          <div className="reference-body-columns">
+          <div className={`reference-body-columns ${activeNav === 'insights' ? 'insights-fullwidth-columns' : ''}`}>
             {/* Center Main Productivity Workspace */}
             <main className="reference-center-workspace">
               {/* TAB 1: DASHBOARD (Home Command Center) */}
@@ -324,15 +324,17 @@ export default function App() {
               )}
             </main>
 
-            {/* 3. Right Information Rail matching reference */}
-            <RightRail
-              tasks={tasks}
-              onToggleStatus={handleToggleStatus}
-              onOpenNewTask={() => setIsAddModalOpen(true)}
-              onExpandFocusMode={() => setViewMode('focus')}
-              onSelectCalendarDate={handleCalendarSelectDate}
-              isActionLoading={actionLoading}
-            />
+            {/* 3. Right Information Rail (rendered on Dashboard) */}
+            {activeNav !== 'insights' && (
+              <RightRail
+                tasks={tasks}
+                onToggleStatus={handleToggleStatus}
+                onOpenNewTask={() => setIsAddModalOpen(true)}
+                onExpandFocusMode={() => setViewMode('focus')}
+                onSelectCalendarDate={handleCalendarSelectDate}
+                isActionLoading={actionLoading}
+              />
+            )}
           </div>
         </div>
       </div>
