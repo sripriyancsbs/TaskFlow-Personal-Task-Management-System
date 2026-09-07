@@ -20,20 +20,11 @@ export default function ProductivityHero() {
         </p>
       </div>
 
-      {/* Right Dusk / Mountain Atmospheric Artwork */}
+      {/* Right Atmospheric Quote & Status Pill */}
       <div className="hero-artwork-wrap">
-        <div className="hero-mountain-illustration">
-          <svg className="hero-dusk-svg" viewBox="0 0 240 100" fill="none">
-            {/* Glowing warm moon/sun */}
-            <circle cx="160" cy="42" r="18" fill="#fdba74" opacity="0.85" />
-            <circle cx="160" cy="42" r="28" fill="#fb923c" opacity="0.15" />
-            {/* Mountains */}
-            <polygon points="40,100 110,40 180,100" fill="#1e293b" opacity="0.9" />
-            <polygon points="120,100 170,55 220,100" fill="#0f172a" opacity="0.95" />
-            <polygon points="0,100 60,65 130,100" fill="#334155" opacity="0.75" />
-            {/* Ambient mist */}
-            <path d="M0,90 Q60,82 120,90 T240,90 L240,100 L0,100 Z" fill="#090d16" opacity="0.9" />
-          </svg>
+        <div className="hero-badge-pill">
+          <span className="hero-pulse-dot" />
+          <span className="hero-badge-text">Command Center Active</span>
         </div>
         <p className="hero-discipline-quote">
           &ldquo;Discipline today builds the freedom tomorrow.&rdquo;

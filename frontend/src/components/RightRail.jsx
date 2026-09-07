@@ -1,6 +1,5 @@
 import React from 'react';
 import CalendarWidget from './CalendarWidget';
-import FocusTimerWidget from './FocusTimerWidget';
 import TodaysGoalsWidget from './TodaysGoalsWidget';
 
 export default function RightRail({
@@ -17,11 +16,6 @@ export default function RightRail({
       <CalendarWidget
         tasks={tasks}
         onSelectDate={onSelectCalendarDate}
-      />
-
-      {/* 2. Focus Timer Widget */}
-      <FocusTimerWidget
-        onExpandFullscreen={onExpandFocusMode}
       />
 
       {/* 3. Today's Goals Widget */}

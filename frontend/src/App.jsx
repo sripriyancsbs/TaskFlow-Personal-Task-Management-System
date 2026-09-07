@@ -5,7 +5,6 @@ import RightRail from './components/RightRail';
 import MobileBottomNav from './components/MobileBottomNav';
 import ProductivityHero from './components/ProductivityHero';
 import StatsOverview from './components/StatsOverview';
-import TodayFocus from './components/TodayFocus';
 import TaskToolbar from './components/TaskToolbar';
 import TaskList from './components/TaskList';
 import TaskDetailPanel from './components/TaskDetailPanel';
@@ -284,15 +283,6 @@ export default function App() {
 
                   {/* 4 Horizontal Metric Cards matching reference */}
                   <StatsOverview stats={stats} />
-
-                  {/* Today's Focus Card matching reference */}
-                  <TodayFocus
-                    tasks={tasks}
-                    onStartFocus={handleStartFocus}
-                    onToggleStatus={handleToggleStatus}
-                    onOpenAddModal={() => setIsAddModalOpen(true)}
-                    isActionLoading={actionLoading}
-                  />
 
                   {/* My Tasks Section */}
                   <section className="my-tasks-section-wrap" aria-label="My Tasks Workspace">

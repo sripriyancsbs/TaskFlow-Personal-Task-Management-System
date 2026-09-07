@@ -87,26 +87,25 @@ export default function Sidebar({
 
       {/* Bottom Mountain Card & New Task CTA */}
       <div className="sidebar-bottom-panel">
-        {/* Mountain Atmosphere Card matching reference */}
-        <div className="sidebar-mountain-card">
-          <div className="mountain-artwork">
-            <svg className="mountain-svg" viewBox="0 0 160 70" fill="none">
-              {/* Mountain silhouettes */}
-              <polygon points="20,70 65,22 110,70" fill="#1e293b" opacity="0.8" />
-              <polygon points="75,70 120,30 160,70" fill="#0f172a" opacity="0.9" />
-              <polygon points="0,70 38,35 85,70" fill="#334155" opacity="0.6" />
-              {/* Star dots */}
-              <circle cx="25" cy="15" r="1" fill="#93c5fd" />
-              <circle cx="85" cy="10" r="1.2" fill="#bfdbfe" />
-              <circle cx="140" cy="18" r="1" fill="#93c5fd" />
-            </svg>
+        {/* Real Productivity Progress Card */}
+        <div className="sidebar-progress-card">
+          <div className="sidebar-progress-header">
+            <span className="sidebar-progress-title">Daily Progress</span>
+            <span className="sidebar-progress-pct">
+              {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
+            </span>
           </div>
-          <p className="mountain-quote-text">
-            &ldquo;Small steps every day lead to big results.&rdquo;
+          <div className="sidebar-progress-track">
+            <div
+              className="sidebar-progress-fill"
+              style={{
+                width: `${stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%`,
+              }}
+            />
+          </div>
+          <p className="sidebar-progress-quote">
+            {stats.completed} of {stats.total} tasks completed
           </p>
-          <div className="mountain-progress-track">
-            <div className="mountain-progress-fill" style={{ width: '45%' }} />
-          </div>
         </div>
 
         {/* Full-Width New Task Button with 'N' tag */}
