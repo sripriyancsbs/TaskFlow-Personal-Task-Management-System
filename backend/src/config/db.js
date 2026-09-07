@@ -77,11 +77,16 @@ async function initPostgresPool() {
   db.public.none(schemaSql);
 
   // Insert initial starter sample tasks with rich priorities and dates
+  const nowMs = Date.now();
+  const twoDaysAgo = new Date(nowMs - 2 * 86400000).toISOString();
+  const threeHoursAgo = new Date(nowMs - 3 * 3600000).toISOString();
+  const fortyFiveMinsAgo = new Date(nowMs - 45 * 60000).toISOString();
+
   db.public.none(`
-    INSERT INTO tasks (title, description, status, priority, due_date) VALUES 
-      ('Welcome to TaskFlow', 'Explore features like real-time search, priority filters, dark mode, keyboard shortcuts, and export.', 'Completed', 'Low', NOW() + INTERVAL '3 days'),
-      ('Review System Architecture', 'Check the clean REST API, database schema, and responsive UI components.', 'Pending', 'High', NOW() + INTERVAL '1 day'),
-      ('Deploy to Vercel and PostgreSQL', 'Configure production environment variables for cloud hosting.', 'Pending', 'Medium', NOW() + INTERVAL '5 days');
+    INSERT INTO tasks (title, description, status, priority, due_date, created_at) VALUES 
+      ('Welcome to TaskFlow', 'Explore features like real-time search, priority filters, dark mode, keyboard shortcuts, and export.', 'Completed', 'Low', NOW() + INTERVAL '3 days', '${twoDaysAgo}'),
+      ('Review System Architecture', 'Check the clean REST API, database schema, and responsive UI components.', 'Pending', 'High', NOW() + INTERVAL '1 day', '${threeHoursAgo}'),
+      ('Deploy to Vercel and PostgreSQL', 'Configure production environment variables for cloud hosting.', 'Pending', 'Medium', NOW() + INTERVAL '5 days', '${fortyFiveMinsAgo}');
   `);
 
   const pgAdapter = db.adapters.createPg();

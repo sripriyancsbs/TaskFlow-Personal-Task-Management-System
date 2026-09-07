@@ -102,9 +102,10 @@ class TaskService {
    * @param {Object} taskData - { title, description, status, priority, due_date }
    */
   async createTask({ title, description, status = 'Pending', priority = 'Medium', due_date = null }) {
+    const createdAt = new Date().toISOString();
     const sql = `
-      INSERT INTO tasks (title, description, status, priority, due_date)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO tasks (title, description, status, priority, due_date, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING id, title, description, status, priority, due_date, created_at
     `;
     const result = await db.query(sql, [
@@ -113,6 +114,7 @@ class TaskService {
       status || 'Pending',
       priority || 'Medium',
       due_date || null,
+      createdAt,
     ]);
     return result.rows[0];
   }

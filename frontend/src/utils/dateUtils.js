@@ -107,7 +107,7 @@ export function formatRelativeTime(dateInput) {
   const diffMs = now - date;
   const diffSec = Math.floor(diffMs / 1000);
 
-  if (diffSec < 45) return 'Just now';
+  if (diffSec < 60) return 'Just now';
   const diffMin = Math.floor(diffSec / 60);
   if (diffMin < 60) return `${diffMin}m ago`;
   const diffHr = Math.floor(diffMin / 60);
