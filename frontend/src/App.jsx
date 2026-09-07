@@ -134,12 +134,12 @@ export default function App() {
     isShortcutsOpen,
   ]);
 
-  // Derived counts for sidebar badges
+  // Derived counts for toolbar pills & widgets
   const todayCount = useMemo(() => {
     return tasks.filter((t) => {
       if (t.status !== 'Pending') return false;
       const info = formatDueDate(t.due_date, t.status);
-      return info?.isToday || info?.isOverdue;
+      return Boolean(info?.isToday);
     }).length;
   }, [tasks]);
 
@@ -155,7 +155,7 @@ export default function App() {
     } else if (statusFilter === 'Today') {
       list = list.filter((t) => {
         const info = formatDueDate(t.due_date, t.status);
-        return info?.isToday || info?.isOverdue;
+        return Boolean(info?.isToday);
       });
     }
 

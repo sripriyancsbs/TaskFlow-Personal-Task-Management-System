@@ -10,8 +10,13 @@ class TaskService {
     const params = [];
 
     if (status && status !== 'All') {
-      params.push(status);
-      sql += ` AND status = $${params.length}`;
+      if (status === 'Today') {
+        params.push('Pending');
+        sql += ` AND status = $${params.length} AND due_date IS NOT NULL AND DATE(due_date) = CURRENT_DATE`;
+      } else {
+        params.push(status);
+        sql += ` AND status = $${params.length}`;
+      }
     }
 
     if (priority && priority !== 'All') {

@@ -41,14 +41,11 @@ export function useTasks(toast) {
     }
   }, []);
 
-  // Fetch tasks according to current filter, priority, sort, and debounced search
+  // Fetch tasks according to current sort order
   const fetchTasks = useCallback(async (showSkeleton = false) => {
     if (showSkeleton) setLoading(true);
     try {
       const data = await taskService.getTasks({
-        status: statusFilter,
-        priority: priorityFilter,
-        search: debouncedSearch,
         sort: sortBy,
       });
       setTasks(data);
@@ -58,9 +55,9 @@ export function useTasks(toast) {
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, priorityFilter, debouncedSearch, sortBy]);
+  }, [sortBy]);
 
-  // Trigger fetch whenever filters, sorting, or debounced search changes
+  // Trigger fetch whenever sort changes
   useEffect(() => {
     fetchTasks(true);
   }, [fetchTasks]);
