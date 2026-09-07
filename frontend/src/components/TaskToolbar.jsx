@@ -1,7 +1,8 @@
 import React from 'react';
 import {
   IconList,
-  IconBoard,
+  IconGrid,
+  IconCalendar,
   IconPlus,
   IconSearch,
   IconFire,
@@ -132,7 +133,7 @@ export default function TaskToolbar({
           </select>
         </div>
 
-        {/* View Switcher: List vs Board */}
+        {/* View Switcher: List vs Grid vs Calendar */}
         <div className="ref-view-switcher">
           <button
             type="button"
@@ -145,12 +146,21 @@ export default function TaskToolbar({
           </button>
           <button
             type="button"
-            className={`view-btn ${viewMode === 'board' ? 'view-btn-active' : ''}`}
-            onClick={() => setViewMode('board')}
-            title="Kanban Board View"
-            aria-label="Board View"
+            className={`view-btn ${viewMode === 'grid' ? 'view-btn-active' : ''}`}
+            onClick={() => setViewMode('grid')}
+            title="Card Grid Gallery View"
+            aria-label="Grid View"
           >
-            <IconBoard className="w-4 h-4" />
+            <IconGrid className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            className={`view-btn ${viewMode === 'calendar' ? 'view-btn-active' : ''}`}
+            onClick={() => setViewMode('calendar')}
+            title="Schedule Calendar View"
+            aria-label="Calendar View"
+          >
+            <IconCalendar className="w-4 h-4" />
           </button>
         </div>
       </div>

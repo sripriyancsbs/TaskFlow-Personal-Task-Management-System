@@ -3,7 +3,8 @@ import {
   IconSearch,
   IconPlus,
   IconList,
-  IconBoard,
+  IconGrid,
+  IconCalendar,
   IconFocus,
   IconToday,
   IconCompleted,
@@ -66,14 +67,25 @@ export default function CommandPalette({
       },
     },
     {
-      id: 'view-board',
-      label: 'Switch to Kanban Board View',
+      id: 'view-grid',
+      label: 'Switch to Card Grid View',
       category: 'Views',
-      icon: <IconBoard className="w-4 h-4 text-violet-400" />,
-      shortcut: 'B',
+      icon: <IconGrid className="w-4 h-4 text-violet-400" />,
+      shortcut: 'G',
       run: () => {
         onClose();
-        onSelectViewMode('board');
+        onSelectViewMode('grid');
+      },
+    },
+    {
+      id: 'view-calendar',
+      label: 'Switch to Schedule Calendar View',
+      category: 'Views',
+      icon: <IconCalendar className="w-4 h-4 text-amber-400" />,
+      shortcut: 'C',
+      run: () => {
+        onClose();
+        onSelectViewMode('calendar');
       },
     },
     {

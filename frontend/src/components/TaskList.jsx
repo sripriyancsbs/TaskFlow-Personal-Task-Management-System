@@ -1,7 +1,7 @@
 import React from 'react';
 import TaskCard from './TaskCard';
-import TaskBoardView from './TaskBoardView';
-import TaskFocusView from './TaskFocusView';
+import TaskGridView from './TaskGridView';
+import TaskCalendarView from './TaskCalendarView';
 import EmptyState from './EmptyState';
 
 export default function TaskList({
@@ -42,11 +42,23 @@ export default function TaskList({
     );
   }
 
-
-  // Board / Kanban View Mode
-  if (viewMode === 'board') {
+  // Calendar / Schedule View Mode
+  if (viewMode === 'calendar') {
     return (
-      <TaskBoardView
+      <TaskCalendarView
+        tasks={tasks}
+        onToggleStatus={onToggleStatus}
+        onSelectTask={onSelectTask}
+        onOpenAddModal={onOpenAddModal}
+        actionLoading={actionLoading}
+      />
+    );
+  }
+
+  // Grid / Gallery View Mode
+  if (viewMode === 'grid') {
+    return (
+      <TaskGridView
         tasks={tasks}
         onToggleStatus={onToggleStatus}
         onEdit={onEdit}
