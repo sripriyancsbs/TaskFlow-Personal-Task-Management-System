@@ -30,6 +30,7 @@ export default function App() {
 
   const [focusedTaskId, setFocusedTaskId] = useState(null);
   const [selectedDetailTask, setSelectedDetailTask] = useState(null);
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
 
@@ -143,7 +144,7 @@ export default function App() {
     }).length;
   }, [tasks]);
 
-  // Filter tasks based on toolbar status/timeline pills, priority, search, and sort
+  // Filter tasks based on toolbar status/timeline pills, priority, calendar date, search, and sort
   const displayedTasks = useMemo(() => {
     let list = [...tasks];
 
@@ -162,6 +163,17 @@ export default function App() {
     // Priority filter
     if (priorityFilter && priorityFilter !== 'All') {
       list = list.filter((t) => t.priority === priorityFilter);
+    }
+
+    // Specific Calendar Date Filter (when user clicks a date on the calendar widget)
+    if (selectedCalendarDate) {
+      list = list.filter((t) => {
+        if (!t.due_date) return false;
+        const d = new Date(t.due_date);
+        const pad = (n) => String(n).padStart(2, '0');
+        const dStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        return dStr === selectedCalendarDate;
+      });
     }
 
     // Search query
@@ -208,7 +220,7 @@ export default function App() {
     });
 
     return list;
-  }, [tasks, statusFilter, priorityFilter, searchQuery, sortBy]);
+  }, [tasks, statusFilter, priorityFilter, selectedCalendarDate, searchQuery, sortBy]);
 
   const handleExportCSV = () => {
     const ok = exportToCSV(tasks);
@@ -221,8 +233,30 @@ export default function App() {
   };
 
   const handleCalendarSelectDate = (dateStr) => {
-    setSearchQuery(dateStr);
-    toast.info(`Filtered tasks for date: ${dateStr}`);
+    if (selectedCalendarDate === dateStr) {
+      setSelectedCalendarDate(null);
+      toast.info('Calendar date filter cleared');
+      return;
+    }
+
+    setSelectedCalendarDate(dateStr);
+
+    const pad = (n) => String(n).padStart(2, '0');
+    const matchCount = tasks.filter((t) => {
+      if (!t.due_date) return false;
+      const d = new Date(t.due_date);
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` === dateStr;
+    }).length;
+
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    const formatted = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    if (matchCount > 0) {
+      toast.success(`Showing ${matchCount} task${matchCount > 1 ? 's' : ''} due on ${formatted}`);
+    } else {
+      toast.info(`No tasks scheduled for ${formatted}`);
+    }
   };
 
   return (
@@ -284,12 +318,48 @@ export default function App() {
                       todayCount={todayCount}
                     />
 
+                    {/* Active Calendar Date Filter Banner */}
+                    {selectedCalendarDate && (
+                      <div className="active-date-filter-banner">
+                        <div className="active-date-filter-info">
+                          <span className="cal-filter-icon">📅</span>
+                          <span>
+                            Due on:{' '}
+                            <strong>
+                              {new Date(
+                                selectedCalendarDate.split('-')[0],
+                                selectedCalendarDate.split('-')[1] - 1,
+                                selectedCalendarDate.split('-')[2]
+                              ).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                year: 'numeric',
+                              })}
+                            </strong>
+                          </span>
+                          <span className="cal-filter-count">
+                            ({displayedTasks.length} {displayedTasks.length === 1 ? 'task' : 'tasks'})
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className="cal-filter-clear-btn"
+                          onClick={() => setSelectedCalendarDate(null)}
+                          title="Clear date filter"
+                        >
+                          Clear Filter ✕
+                        </button>
+                      </div>
+                    )}
+
                     <TaskList
                       tasks={displayedTasks}
                       loading={loading}
                       statusFilter={statusFilter}
                       priorityFilter={priorityFilter}
                       searchQuery={searchQuery}
+                      selectedCalendarDate={selectedCalendarDate}
+                      onClearCalendarDate={() => setSelectedCalendarDate(null)}
                       hasAnyTasks={stats.total > 0}
                       viewMode={viewMode}
                       onToggleStatus={handleToggleStatus}
@@ -302,6 +372,7 @@ export default function App() {
                         setStatusFilter('All');
                         setPriorityFilter('All');
                         setSearchQuery('');
+                        setSelectedCalendarDate(null);
                       }}
                       actionLoading={actionLoading}
                       focusedTaskId={focusedTaskId}
@@ -328,6 +399,7 @@ export default function App() {
             {activeNav !== 'insights' && viewMode !== 'calendar' && (
               <RightRail
                 tasks={tasks}
+                selectedCalendarDate={selectedCalendarDate}
                 onToggleStatus={handleToggleStatus}
                 onOpenNewTask={() => setIsAddModalOpen(true)}
                 onExpandFocusMode={() => setViewMode('focus')}
@@ -358,14 +430,12 @@ export default function App() {
             setSelectedDetailTask((prev) => ({ ...prev, ...data }));
           }
         }}
-        onToggleStatus={async (task) => {
-          await handleToggleStatus(task);
-        }}
-        onDeleteTask={(task) => {
+        onDeleteTask={async (id) => {
+          await handleDeleteTask(id);
           setSelectedDetailTask(null);
-          setDeletingTask(task);
         }}
-        isSaving={actionLoading}
+        onToggleStatus={handleToggleStatus}
+        onStartFocus={handleStartFocus}
       />
 
       {/* Developer Command Palette (Ctrl+K) */}
@@ -391,6 +461,7 @@ export default function App() {
       {/* Task Creation Modal */}
       <TaskModal
         isOpen={isAddModalOpen}
+        initialData={selectedCalendarDate ? { due_date: selectedCalendarDate } : null}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={handleCreateTask}
         isSaving={actionLoading}

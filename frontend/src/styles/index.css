@@ -4646,3 +4646,69 @@ kbd {
   color: #047857;
 }
 
+
+/* Calendar Selected Day */
+.cal-day-cell.day-is-selected {
+  background: rgba(59, 130, 246, 0.28) !important;
+  color: #60a5fa !important;
+  font-weight: 700;
+  box-shadow: 0 0 0 1.5px #3b82f6;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  margin: auto;
+}
+
+.cal-day-cell.day-is-today.day-is-selected {
+  background: var(--ref-accent-blue) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+/* Active Date Filter Banner */
+.active-date-filter-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(59, 130, 246, 0.09);
+  border: 1px solid rgba(59, 130, 246, 0.28);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  font-size: 13px;
+  color: var(--ref-text-primary);
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.active-date-filter-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cal-filter-icon {
+  font-size: 14px;
+}
+
+.cal-filter-count {
+  color: var(--ref-text-muted);
+  font-size: 12px;
+  margin-left: 4px;
+}
+
+.cal-filter-clear-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--ref-text-secondary);
+  border-radius: var(--radius-xs);
+  padding: 4px 10px;
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.cal-filter-clear-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #f87171;
+}

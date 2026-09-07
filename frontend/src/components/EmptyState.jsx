@@ -6,6 +6,8 @@ export default function EmptyState({
   priorityFilter,
   searchQuery,
   hasAnyTasks,
+  selectedCalendarDate = null,
+  onClearCalendarDate,
   onOpenAddModal,
   onResetFilters,
 }) {
@@ -14,7 +16,15 @@ export default function EmptyState({
   let showAddBtn = true;
   let icon = <IconPlus className="w-8 h-8 text-cyan-400" />;
 
-  if (searchQuery && searchQuery.trim()) {
+  if (selectedCalendarDate) {
+    const [y, m, d] = selectedCalendarDate.split('-').map(Number);
+    const dateObj = new Date(y, m - 1, d);
+    const formatted = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    title = `No tasks scheduled for ${formatted}.`;
+    subtitle = 'You have no tasks due on this date. Click below to schedule one!';
+    showAddBtn = true;
+    icon = <IconPlus className="w-8 h-8 text-cyan-400" />;
+  } else if (searchQuery && searchQuery.trim()) {
     title = 'No matching tasks.';
     subtitle = 'Try a different search term or clear the filter.';
     showAddBtn = false;
@@ -50,7 +60,25 @@ export default function EmptyState({
         <p className="empty-subtitle">{subtitle}</p>
 
         <div className="empty-actions-row">
-          {showAddBtn ? (
+          {selectedCalendarDate ? (
+            <>
+              <button
+                type="button"
+                className="btn-new-task-primary empty-add-btn"
+                onClick={onOpenAddModal}
+              >
+                <IconPlus className="w-4 h-4 mr-1.5" />
+                <span>Add Task for this Date</span>
+              </button>
+              <button
+                type="button"
+                className="btn-reset-filters empty-reset-btn"
+                onClick={onClearCalendarDate}
+              >
+                <span>Clear Date Filter</span>
+              </button>
+            </>
+          ) : showAddBtn ? (
             <button
               type="button"
               className="btn-new-task-primary empty-add-btn"

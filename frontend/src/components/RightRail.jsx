@@ -8,6 +8,7 @@ export default function RightRail({
   onOpenNewTask,
   onExpandFocusMode,
   onSelectCalendarDate,
+  selectedCalendarDate = null,
   isActionLoading,
 }) {
   return (
@@ -15,6 +16,7 @@ export default function RightRail({
       {/* 1. Monthly Calendar */}
       <CalendarWidget
         tasks={tasks}
+        selectedDate={selectedCalendarDate}
         onSelectDate={onSelectCalendarDate}
       />
 

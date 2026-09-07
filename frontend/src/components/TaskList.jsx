@@ -11,6 +11,8 @@ export default function TaskList({
   priorityFilter = 'All',
   searchQuery = '',
   hasAnyTasks = false,
+  selectedCalendarDate = null,
+  onClearCalendarDate,
   viewMode = 'list',
   onToggleStatus,
   onEdit,
@@ -78,6 +80,8 @@ export default function TaskList({
         priorityFilter={priorityFilter}
         searchQuery={searchQuery}
         hasAnyTasks={hasAnyTasks}
+        selectedCalendarDate={selectedCalendarDate}
+        onClearCalendarDate={onClearCalendarDate}
         onOpenAddModal={onOpenAddModal}
         onResetFilters={onResetFilters}
       />
