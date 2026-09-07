@@ -1,0 +1,24 @@
+{
+  "name": "taskflow-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TaskFlow - Personal Task Management System",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix frontend",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "test:backend": "npm --prefix backend test",
+    "test": "npm --prefix backend test"
+  },
+  "keywords": [
+    "task-management",
+    "productivity",
+    "react",
+    "vite",
+    "express",
+    "postgresql"
+  ],
+  "author": "TaskFlow Team",
+  "license": "MIT"
+}
