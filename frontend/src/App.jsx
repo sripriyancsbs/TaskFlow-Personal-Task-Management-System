@@ -257,7 +257,7 @@ export default function App() {
           />
 
           {/* Body Columns: Center Workspace + Right Information Rail */}
-          <div className={`reference-body-columns ${activeNav === 'insights' ? 'insights-fullwidth-columns' : ''}`}>
+          <div className={`reference-body-columns ${activeNav === 'insights' || viewMode === 'calendar' ? 'insights-fullwidth-columns' : ''}`}>
             {/* Center Main Productivity Workspace */}
             <main className="reference-center-workspace">
               {/* TAB 1: DASHBOARD (Home Command Center) */}
@@ -324,8 +324,8 @@ export default function App() {
               )}
             </main>
 
-            {/* 3. Right Information Rail (rendered on Dashboard) */}
-            {activeNav !== 'insights' && (
+            {/* 3. Right Information Rail (rendered on Dashboard except when in Calendar mode) */}
+            {activeNav !== 'insights' && viewMode !== 'calendar' && (
               <RightRail
                 tasks={tasks}
                 onToggleStatus={handleToggleStatus}

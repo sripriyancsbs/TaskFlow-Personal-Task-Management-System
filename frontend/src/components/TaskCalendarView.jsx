@@ -4,10 +4,8 @@ import {
   IconChevronRight,
   IconPlus,
   IconCheck,
-  IconFire,
   IconClock,
 } from './Icons';
-import { formatDate } from '../utils/dateUtils';
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_NAMES = [
@@ -22,7 +20,7 @@ export default function TaskCalendarView({
   onOpenAddModal,
   actionLoading = false,
 }) {
-  // Current viewing month and year (defaults to current date)
+  // Current viewing month and year
   const [currentDate, setCurrentDate] = useState(() => new Date());
 
   const year = currentDate.getFullYear();
@@ -129,32 +127,32 @@ export default function TaskCalendarView({
   }, [calendarData]);
 
   return (
-    <div className="task-calendar-view" aria-label="Schedule Calendar View">
+    <div className="sched-cal-container" aria-label="Schedule Calendar View">
       {/* Calendar Header Navigation */}
-      <div className="calendar-nav-toolbar">
-        <div className="calendar-nav-left">
-          <h4 className="calendar-month-title">
-            {MONTH_NAMES[month]} <span className="calendar-year-text">{year}</span>
-          </h4>
-          <span className="calendar-month-task-count">
+      <div className="sched-cal-nav">
+        <div className="sched-cal-nav-left">
+          <h3 className="sched-cal-title">
+            {MONTH_NAMES[month]} <span className="sched-cal-year">{year}</span>
+          </h3>
+          <span className="sched-cal-badge">
             {monthTasksCount} {monthTasksCount === 1 ? 'task' : 'tasks'} scheduled
           </span>
         </div>
 
-        <div className="calendar-nav-actions">
+        <div className="sched-cal-controls">
           <button
             type="button"
-            className="calendar-btn-today"
+            className="sched-cal-today-btn"
             onClick={handleGoToday}
-            title="Jump to today"
+            title="Jump to current date"
           >
             Today
           </button>
 
-          <div className="calendar-month-arrows">
+          <div className="sched-cal-nav-arrows">
             <button
               type="button"
-              className="calendar-arrow-btn"
+              className="sched-cal-nav-btn"
               onClick={handlePrevMonth}
               title="Previous Month"
               aria-label="Previous Month"
@@ -163,7 +161,7 @@ export default function TaskCalendarView({
             </button>
             <button
               type="button"
-              className="calendar-arrow-btn"
+              className="sched-cal-nav-btn"
               onClick={handleNextMonth}
               title="Next Month"
               aria-label="Next Month"
@@ -174,9 +172,9 @@ export default function TaskCalendarView({
 
           <button
             type="button"
-            className="calendar-btn-new-task"
+            className="sched-cal-add-btn"
             onClick={onOpenAddModal}
-            title="Create task"
+            title="Create new task"
           >
             <IconPlus className="w-3.5 h-3.5 mr-1" />
             <span>Add Task</span>
@@ -184,63 +182,64 @@ export default function TaskCalendarView({
         </div>
       </div>
 
-      {/* Weekday Header Row */}
-      <div className="calendar-weekdays-row" role="row">
+      {/* Weekday Columns Header */}
+      <div className="sched-cal-weekdays" role="row">
         {WEEKDAYS.map((day) => (
-          <div key={day} className="calendar-weekday-cell" role="columnheader">
+          <div key={day} className="sched-cal-weekday-col" role="columnheader">
             {day}
           </div>
         ))}
       </div>
 
-      {/* Days Matrix Grid */}
-      <div className="calendar-grid-matrix" role="grid" aria-label="Month Calendar">
+      {/* 7x5 Days Matrix Grid */}
+      <div className="sched-cal-matrix" role="grid" aria-label="Monthly Schedule Grid">
         {calendarData.cells.map((cell, idx) => (
           <div
             key={`${cell.dateKey}-${idx}`}
-            className={`calendar-day-cell ${
-              cell.isCurrentMonth ? 'day-in-month' : 'day-out-of-month'
-            } ${cell.isToday ? 'day-is-today' : ''} ${
-              cell.tasks.length > 0 ? 'day-has-tasks' : ''
-            }`}
+            className={`sched-cal-cell ${
+              cell.isCurrentMonth ? 'sched-cell-current-month' : 'sched-cell-other-month'
+            } ${cell.isToday ? 'sched-cell-is-today' : ''}`}
           >
-            <div className="day-header">
-              <span className={`day-number ${cell.isToday ? 'today-badge' : ''}`}>
+            <div className="sched-cell-header">
+              <span className={`sched-cell-num ${cell.isToday ? 'sched-today-circle' : ''}`}>
                 {cell.dayNum}
               </span>
               {cell.tasks.length > 0 && (
-                <span className="day-task-count-pill">{cell.tasks.length}</span>
+                <span className="sched-cell-count">{cell.tasks.length}</span>
               )}
             </div>
 
-            <div className="day-tasks-container">
+            <div className="sched-cell-tasks">
               {cell.tasks.map((task) => {
                 const isCompleted = task.status === 'Completed';
+                const p = (task.priority || 'Medium').toLowerCase();
+
                 return (
                   <div
                     key={task.id}
-                    className={`calendar-task-chip priority-${task.priority.toLowerCase()} ${
-                      isCompleted ? 'chip-completed' : 'chip-pending'
+                    className={`sched-task-chip priority-${p} ${
+                      isCompleted ? 'sched-chip-completed' : ''
                     }`}
                     onClick={() => onSelectTask(task)}
                     title={`${task.title} (${task.priority} Priority - ${task.status})`}
                   >
                     <button
                       type="button"
-                      className="chip-status-check"
+                      className="sched-chip-check"
                       onClick={(e) => {
                         e.stopPropagation();
                         onToggleStatus(task);
                       }}
+                      disabled={actionLoading}
                       aria-label={isCompleted ? 'Mark as pending' : 'Mark as completed'}
                     >
                       {isCompleted ? (
-                        <IconCheck className="w-3 h-3" />
+                        <IconCheck className="w-3 h-3 text-emerald-500" />
                       ) : (
-                        <span className={`chip-dot dot-${task.priority.toLowerCase()}`} />
+                        <span className={`sched-chip-dot dot-${p}`} />
                       )}
                     </button>
-                    <span className="chip-task-title">{task.title}</span>
+                    <span className="sched-chip-title">{task.title}</span>
                   </div>
                 );
               })}
@@ -249,50 +248,53 @@ export default function TaskCalendarView({
         ))}
       </div>
 
-      {/* Unscheduled Tasks Drawer */}
+      {/* Unscheduled Tasks Section */}
       {calendarData.unscheduledTasks.length > 0 && (
-        <div className="calendar-unscheduled-section">
-          <div className="unscheduled-header">
-            <div className="unscheduled-title-wrap">
+        <div className="sched-unscheduled-drawer">
+          <div className="sched-unscheduled-header">
+            <div className="sched-unscheduled-title-wrap">
               <IconClock className="w-4 h-4 text-amber-500 mr-2" />
-              <h5 className="unscheduled-title">Tasks Without Due Date</h5>
-              <span className="unscheduled-count">
+              <h4 className="sched-unscheduled-heading">Tasks Without Due Date</h4>
+              <span className="sched-unscheduled-badge">
                 {calendarData.unscheduledTasks.length}
               </span>
             </div>
-            <span className="unscheduled-subtitle">
-              Click any task to inspect details or assign a deadline
+            <span className="sched-unscheduled-hint">
+              Click any task to view details or set a deadline
             </span>
           </div>
 
-          <div className="unscheduled-chips-row">
+          <div className="sched-unscheduled-items">
             {calendarData.unscheduledTasks.map((task) => {
               const isCompleted = task.status === 'Completed';
+              const p = (task.priority || 'Medium').toLowerCase();
+
               return (
                 <div
                   key={task.id}
-                  className={`unscheduled-task-badge priority-${task.priority.toLowerCase()} ${
-                    isCompleted ? 'badge-completed' : ''
+                  className={`sched-unscheduled-card priority-${p} ${
+                    isCompleted ? 'card-completed' : ''
                   }`}
                   onClick={() => onSelectTask(task)}
                   title={`${task.title} (${task.priority} Priority)`}
                 >
                   <button
                     type="button"
-                    className="unscheduled-check-btn"
+                    className="sched-unscheduled-check"
                     onClick={(e) => {
                       e.stopPropagation();
                       onToggleStatus(task);
                     }}
+                    disabled={actionLoading}
                   >
                     {isCompleted ? (
-                      <IconCheck className="w-3 h-3 text-emerald-500" />
+                      <IconCheck className="w-3.5 h-3.5 text-emerald-500" />
                     ) : (
-                      <span className={`chip-dot dot-${task.priority.toLowerCase()}`} />
+                      <span className={`sched-chip-dot dot-${p}`} />
                     )}
                   </button>
-                  <span className="unscheduled-task-name">{task.title}</span>
-                  <span className={`unscheduled-priority-tag tag-${task.priority.toLowerCase()}`}>
+                  <span className="sched-unscheduled-name">{task.title}</span>
+                  <span className={`sched-priority-pill pill-${p}`}>
                     {task.priority}
                   </span>
                 </div>
