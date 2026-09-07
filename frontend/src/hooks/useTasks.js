@@ -1,15 +1,35 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { taskService } from '../services/taskService';
 
+const CACHE_KEY = 'taskflow_cached_tasks';
+
+function getInitialTasks() {
+  try {
+    const cached = localStorage.getItem(CACHE_KEY);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return [];
+}
+
 export function useTasks(toast) {
-  const [tasks, setTasks] = useState([]);
+  const [tasks, setTasks] = useState(getInitialTasks);
   const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0, high_priority: 0 });
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => getInitialTasks().length === 0);
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [sortBy, setSortBy] = useState('due_date');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Sync cache helper
+  const updateCache = useCallback((updatedTasks) => {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify(updatedTasks));
+    } catch (e) {}
+  }, []);
 
   // Stable ref for toast methods to avoid effect re-execution
   const toastRef = useRef(toast);
@@ -43,19 +63,20 @@ export function useTasks(toast) {
 
   // Fetch tasks according to current sort order
   const fetchTasks = useCallback(async (showSkeleton = false) => {
-    if (showSkeleton) setLoading(true);
+    if (showSkeleton && tasks.length === 0) setLoading(true);
     try {
       const data = await taskService.getTasks({
         sort: sortBy,
       });
       setTasks(data);
+      updateCache(data);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
       toastRef.current?.error(err.message || 'Unable to load tasks from server.');
     } finally {
       setLoading(false);
     }
-  }, [sortBy]);
+  }, [sortBy, tasks.length, updateCache]);
 
   // Trigger fetch whenever sort changes
   useEffect(() => {
@@ -106,9 +127,11 @@ export function useTasks(toast) {
     const originalTasks = [...tasks];
     const originalStats = { ...stats };
 
-    setTasks((prev) =>
-      prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t))
-    );
+    setTasks((prev) => {
+      const nextTasks = prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t));
+      updateCache(nextTasks);
+      return nextTasks;
+    });
     setStats((prev) => ({
       ...prev,
       pending: newStatus === 'Pending' ? prev.pending + 1 : Math.max(0, prev.pending - 1),
@@ -123,6 +146,7 @@ export function useTasks(toast) {
       fetchStats();
     } catch (err) {
       setTasks(originalTasks);
+      updateCache(originalTasks);
       setStats(originalStats);
       toastRef.current?.error(err.message || 'Failed to update task status.');
     }
@@ -135,7 +159,11 @@ export function useTasks(toast) {
     const originalStats = { ...stats };
     const taskToDelete = tasks.find((t) => t.id === id);
 
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    setTasks((prev) => {
+      const nextTasks = prev.filter((t) => t.id !== id);
+      updateCache(nextTasks);
+      return nextTasks;
+    });
     if (taskToDelete) {
       setStats((prev) => ({
         total: Math.max(0, prev.total - 1),

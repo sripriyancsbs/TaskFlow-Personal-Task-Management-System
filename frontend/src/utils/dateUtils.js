@@ -16,6 +16,27 @@ export function formatDate(dateInput) {
 }
 
 /**
+ * Format date with time (e.g., 'Sep 7, 2026, 1:30 PM')
+ * @param {string|Date} dateInput
+ * @returns {string}
+ */
+export function formatDateTime(dateInput) {
+  if (!dateInput) return '';
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return '';
+
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
+}
+
+
+/**
  * Format due dates with smart relative statuses (Overdue, Due Today, Due Tomorrow)
  * @param {string|Date} dateInput
  * @param {string} status - 'Pending' | 'Completed'

@@ -365,7 +365,6 @@ export default function App() {
           setSelectedDetailTask(null);
           setDeletingTask(task);
         }}
-        onStartFocus={(task) => handleStartFocus(task)}
         isSaving={actionLoading}
       />
 

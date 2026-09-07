@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { formatDate, formatDueDate } from '../utils/dateUtils';
+import { formatDate, formatDueDate, formatDateTime } from '../utils/dateUtils';
 import {
   IconClose,
   IconCheck,
-  IconPlay,
   IconTrash,
   IconClock,
   IconFire,
@@ -16,7 +15,6 @@ export default function TaskDetailPanel({
   onUpdateTask,
   onToggleStatus,
   onDeleteTask,
-  onStartFocus,
   isSaving,
 }) {
   const [formData, setFormData] = useState({
@@ -206,7 +204,7 @@ export default function TaskDetailPanel({
           <div className="detail-metadata-box">
             <div className="metadata-row">
               <span className="meta-label">Created:</span>
-              <span className="meta-val">{formatDate(task.created_at)}</span>
+              <span className="meta-val">{formatDateTime(task.created_at)}</span>
             </div>
             <div className="metadata-row">
               <span className="meta-label">Task ID:</span>
@@ -234,21 +232,6 @@ export default function TaskDetailPanel({
             </div>
 
             <div className="drawer-footer-right">
-              {task.status === 'Pending' && (
-                <button
-                  type="button"
-                  className="btn-focus-task"
-                  onClick={() => {
-                    onStartFocus(task);
-                    onClose();
-                  }}
-                  title="Open focus timer with this task"
-                >
-                  <IconPlay className="w-3.5 h-3.5 mr-1" />
-                  <span>Focus</span>
-                </button>
-              )}
-
               <button
                 type="submit"
                 className="btn-primary-save"
