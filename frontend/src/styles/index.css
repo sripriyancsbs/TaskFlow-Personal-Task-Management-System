@@ -1820,27 +1820,39 @@ kbd {
   top: calc(100% + 8px);
   right: 0;
   width: 320px;
-  background: #121622;
+  background: var(--ref-bg-card);
   border: 1px solid var(--ref-border-medium);
   border-radius: var(--radius-lg);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
   z-index: 70;
   overflow: hidden;
   animation: popoverFade 160ms ease-out;
+}
+
+[data-theme='dark'] .notification-popover {
+  background: #121622;
+  border-color: var(--ref-border-medium);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 .user-profile-menu {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  width: 220px;
-  background: #121622;
+  width: 230px;
+  background: var(--ref-bg-card);
   border: 1px solid var(--ref-border-medium);
   border-radius: var(--radius-lg);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.06);
   z-index: 70;
   overflow: hidden;
   animation: popoverFade 160ms ease-out;
+}
+
+[data-theme='dark'] .user-profile-menu {
+  background: #121622;
+  border-color: var(--ref-border-medium);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 @keyframes popoverFade {
@@ -1977,13 +1989,13 @@ kbd {
 .profile-menu-header {
   display: flex;
   align-items: center;
-  gap: 0.65rem;
-  padding: 0.85rem 1rem;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem;
 }
 
 .profile-menu-avatar {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: #4338ca;
   color: #ffffff;
@@ -1991,22 +2003,25 @@ kbd {
   align-items: center;
   justify-content: center;
   font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
 }
 
 .profile-menu-info {
   display: flex;
   flex-direction: column;
+  gap: 0.1rem;
 }
 
 .profile-name {
-  font-size: 13px;
+  font-size: 13.5px;
   font-weight: 700;
   color: var(--ref-text-primary);
 }
 
 .profile-role {
-  font-size: 11px;
-  color: var(--ref-text-muted);
+  font-size: 11.5px;
+  color: var(--ref-text-secondary);
 }
 
 .profile-menu-divider {
@@ -2015,9 +2030,10 @@ kbd {
 }
 
 .profile-menu-list {
-  padding: 0.35rem;
+  padding: 0.4rem;
   display: flex;
   flex-direction: column;
+  gap: 0.2rem;
 }
 
 .profile-menu-item {
@@ -2026,9 +2042,10 @@ kbd {
   width: 100%;
   height: 36px;
   padding: 0 0.75rem;
-  border-radius: var(--radius-xs);
-  font-size: 12.5px;
-  color: var(--ref-text-secondary);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ref-text-primary);
   transition: all var(--transition-fast);
   background: transparent;
   border: none;
@@ -2057,18 +2074,26 @@ kbd {
 
 .profile-item-kbd {
   margin-left: auto;
-  font-size: 10.5px;
-  padding: 1px 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 6px;
   border-radius: 4px;
-  background: var(--ref-bg-card);
+  background: var(--ref-bg-input);
   border: 1px solid var(--ref-border-subtle);
-  color: var(--ref-text-muted);
+  color: var(--ref-text-secondary);
 }
 
 .profile-menu-footer {
-  padding: 0.5rem 1rem;
-  font-size: 10.5px;
+  padding: 0.55rem 1rem;
+  font-size: 11px;
+  background: var(--ref-bg-input);
+  border-top: 1px solid var(--ref-border-subtle);
+}
+
+.profile-version-text {
   color: var(--ref-text-muted);
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 /* Screen reader utility to hide labels visually without breaking accessibility */
@@ -2630,12 +2655,18 @@ kbd {
 .command-palette-modal {
   width: 100%;
   max-width: 580px;
-  background: #111622;
+  background: var(--ref-bg-card);
   border: 1px solid var(--ref-border-medium);
   border-radius: var(--radius-lg);
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   animation: modalScaleUp 0.2s ease-out;
+}
+
+[data-theme='dark'] .command-palette-modal {
+  background: #111622;
+  border-color: var(--ref-border-medium);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9);
 }
 
 .palette-input-wrap {
