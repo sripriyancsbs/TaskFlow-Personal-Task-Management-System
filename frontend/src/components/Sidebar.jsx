@@ -15,7 +15,6 @@ export default function Sidebar({
   onSelectNav,
   stats = { total: 0, pending: 0, completed: 0 },
   todayCount = 0,
-  upcomingCount = 0,
   onOpenNewTask,
   onOpenShortcuts,
 }) {

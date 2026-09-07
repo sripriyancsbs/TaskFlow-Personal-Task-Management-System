@@ -143,14 +143,6 @@ export default function App() {
     }).length;
   }, [tasks]);
 
-  const upcomingCount = useMemo(() => {
-    return tasks.filter((t) => {
-      if (t.status !== 'Pending') return false;
-      const info = formatDueDate(t.due_date, t.status);
-      return info?.isUpcoming || info?.isTomorrow;
-    }).length;
-  }, [tasks]);
-
   // Filter tasks based on toolbar status/timeline pills, priority, search, and sort
   const displayedTasks = useMemo(() => {
     let list = [...tasks];
@@ -164,11 +156,6 @@ export default function App() {
       list = list.filter((t) => {
         const info = formatDueDate(t.due_date, t.status);
         return info?.isToday || info?.isOverdue;
-      });
-    } else if (statusFilter === 'Upcoming') {
-      list = list.filter((t) => {
-        const info = formatDueDate(t.due_date, t.status);
-        return info?.isUpcoming || info?.isTomorrow;
       });
     }
 
@@ -251,7 +238,6 @@ export default function App() {
           onSelectNav={handleSelectNav}
           stats={stats}
           todayCount={todayCount}
-          upcomingCount={upcomingCount}
           onOpenNewTask={() => setIsAddModalOpen(true)}
           onOpenShortcuts={() => setIsShortcutsOpen(true)}
         />
@@ -296,7 +282,6 @@ export default function App() {
                       onOpenAddModal={() => setIsAddModalOpen(true)}
                       stats={stats}
                       todayCount={todayCount}
-                      upcomingCount={upcomingCount}
                     />
 
                     <TaskList

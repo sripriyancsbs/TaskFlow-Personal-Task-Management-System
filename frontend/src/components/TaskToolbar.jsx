@@ -21,7 +21,6 @@ export default function TaskToolbar({
   onOpenAddModal,
   stats = { total: 0, pending: 0, completed: 0 },
   todayCount = 0,
-  upcomingCount = 0,
 }) {
   return (
     <div className="reference-my-tasks-header-block">
@@ -62,13 +61,6 @@ export default function TaskToolbar({
             onClick={() => setStatusFilter('Today')}
           >
             Today ({todayCount})
-          </button>
-          <button
-            type="button"
-            className={`ref-status-pill ${statusFilter === 'Upcoming' ? 'pill-active-electric' : ''}`}
-            onClick={() => setStatusFilter('Upcoming')}
-          >
-            Upcoming ({upcomingCount})
           </button>
           <button
             type="button"
