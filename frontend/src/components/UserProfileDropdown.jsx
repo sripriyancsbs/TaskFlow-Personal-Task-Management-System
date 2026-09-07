@@ -38,7 +38,7 @@ export default function UserProfileDropdown({
       {/* Header Info */}
       <div className="profile-menu-header">
         <div className="profile-menu-avatar">
-          <span>SK</span>
+          <span>S</span>
         </div>
         <div className="profile-menu-info">
           <span className="profile-name">Sripriyan</span>

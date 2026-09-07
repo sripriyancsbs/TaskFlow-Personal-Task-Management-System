@@ -70,19 +70,19 @@ export default function GlobalHeader({
 
       {/* Right Controls: Theme Toggle, Profile */}
       <div className="header-controls-group">
-        {/* Theme Toggle Switch */}
+        {/* Theme Toggle Button */}
         <button
           type="button"
-          className="theme-switch-slider"
+          className={`theme-switch-slider theme-switch-${theme}`}
           onClick={toggleTheme}
           title={`Switch to ${theme === 'dark' ? 'Light' : 'Dark'} mode`}
           aria-label="Toggle dark/light theme"
         >
           <div className={`theme-switch-handle ${theme === 'dark' ? 'switch-dark' : 'switch-light'}`}>
             {theme === 'dark' ? (
-              <IconMoon className="w-3 h-3 text-indigo-300" />
+              <IconMoon width={13} height={13} className="theme-switch-icon theme-icon-moon" />
             ) : (
-              <IconSun className="w-3 h-3 text-amber-400" />
+              <IconSun width={13} height={13} className="theme-switch-icon theme-icon-sun" />
             )}
           </div>
         </button>
@@ -97,7 +97,7 @@ export default function GlobalHeader({
             aria-label="User Account"
           >
             <div className="user-avatar-circle">
-              <span>SK</span>
+              <span>S</span>
             </div>
             <span className="user-greeting-name">Hi, Sripriyan</span>
             <svg className="w-3 h-3 text-muted ml-0.5" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
