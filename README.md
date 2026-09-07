@@ -1,354 +1,63 @@
-# TaskFlow – Personal Task Management System
+﻿<div align="center">
 
-> **Plan less. Accomplish more.**
->
-> A modern, polished, production-quality personal task management system engineered with React, Vite, Express, and PostgreSQL. Built to demonstrate clean architecture, robust data validation, responsive SaaS aesthetics, comprehensive automated testing, and CI/CD deployment readiness.
+# 🗂️ TaskFlow
 
----
+### A sleek, modern Personal Task Management System
 
-## Table of Contents
-1. [Overview](#overview)
-2. [Key Features](#key-features)
-3. [Technology Stack](#technology-stack)
-4. [System Architecture](#system-architecture)
-5. [Project Structure](#project-structure)
-6. [Database Schema](#database-schema)
-7. [REST API Documentation](#rest-api-documentation)
-8. [Environment Variables](#environment-variables)
-9. [Local Development Setup](#local-development-setup)
-10. [Automated Testing](#automated-testing)
-11. [CI/CD Pipeline](#cicd-pipeline)
-12. [Deployment Guide](#deployment-guide)
-13. [Verification & Quality Checklist](#verification--quality-checklist)
+![React](https://img.shields.io/badge/React-18-61DAFB?style=for-the-badge&logo=react&logoColor=black)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?style=for-the-badge&logo=vite&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-20-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-4-000000?style=for-the-badge&logo=express&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pg--mem-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+
+**[🚀 Live Demo](#)** • **[📖 API Docs](#rest-api-documentation)** • **[🛠️ Setup](#local-development-setup)**
+
+</div>
 
 ---
 
-## Overview
+## ✨ Features
 
-TaskFlow is designed from the ground up as a professional productivity SaaS application rather than a toy todo app. It features a layered backend architecture (Controllers, Services, Middlewares, Database Abstraction), robust SQL parameterization, a component-driven React frontend with custom hooks, fluid responsive layouts across desktop, tablet, and mobile devices, and an accessible design system supporting both Light and Dark modes.
-
----
-
-## Key Features
-
-- **Dynamic Productivity Dashboard**: Real-time greeting tailored to the time of day, live date indicator, and dynamic statistic cards (*Total Tasks*, *Pending*, *Completed*, with calculated completion percentage).
-- **Task Creation & Editing**: Clean modal dialogues with title validation (whitespace and character bounds check), optional descriptions, and duplicate submission locks.
-- **Interactive Status Management**: Toggle tasks between `Pending` and `Completed` with instant optimistic feedback, badge state updates, and title strikethrough.
-- **Safe Task Deletion**: Custom confirmation modal preventing accidental deletions with warning messaging and undo prevention notes.
-- **Live Search & Status Filters**: Filter by *All*, *Pending*, or *Completed* tasks with badge counts, coupled with real-time text search querying task titles and descriptions simultaneously without page reloads.
-- **Sleek Light & Dark Themes**: Curated color palettes with high-contrast WCAG compliance, persistent across sessions via `localStorage`.
-- **Lightweight Toast Notifications**: Non-intrusive feedback for every create, edit, delete, and status toggle action, along with server connectivity alerts.
-- **Optimized Loading States**: Skeleton placeholders for initial data retrieval and action-specific spinners preventing duplicate API invocations.
-- **Responsive Layout**: Designed for 1440px/1280px desktops, 1024px/768px tablets, and 480px/375px mobile screens with zero horizontal overflow.
+- **📋 List View** — Clean, scannable task list with inline status toggles
+- **🗓️ Calendar View** — Monthly schedule to visualize tasks by due date
+- **⊞ Grid View** — Card gallery for a visual overview of all tasks
+- **⚡ Command Palette** — `Ctrl+K` to quickly create, search, and switch views
+- **🌙 Dark / Light Mode** — Persisted preference via `localStorage`
+- **🔍 Real-time Search** — Instant filter across title and description
+- **📊 Stats Dashboard** — Live counts of pending vs completed tasks
+- **🔔 Toast Notifications** — Subtle feedback on every action
+- **📱 Responsive Design** — Mobile-optimized with bottom navigation
+- **⌨️ Keyboard Shortcuts** — Full keyboard navigation support
+- **💾 Persistent Storage** — Tasks survive server restarts via JSON-backed store
 
 ---
 
-## Technology Stack
+## 🛠️ Tech Stack
 
-| Layer | Technologies |
-| :--- | :--- |
-| **Frontend** | React 18, Vite 5, JavaScript (ES2022), Vanilla CSS Design System |
-| **Backend** | Node.js (LTS), Express 4, CORS, Dotenv |
-| **Database** | PostgreSQL, `pg` (Node-Postgres Connection Pool) |
-| **Testing** | Jest, Supertest, pg-mem (in-memory PostgreSQL compatibility engine) |
-| **Version Control** | Git, GitHub |
-| **CI/CD** | GitHub Actions (`.github/workflows/ci.yml`) |
-| **Hosting** | Vercel (Frontend), Hosted PostgreSQL (Neon / Supabase / Render) |
-
----
-
-## System Architecture
-
-```text
-┌─────────────────────────────────────────────────────────────────┐
-│                    React Client (Vite SPA)                      │
-│   • DashboardGreeting  • StatsOverview  • TaskToolbar           │
-│   • TaskList / TaskCard  • TaskModal  • DeleteConfirmModal      │
-│   • useTheme (localStorage)  • useTasks  • useToast             │
-└────────────────────────────────┬────────────────────────────────┘
-                                 │ HTTP / JSON REST Requests
-                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    Express.js REST API                          │
-│   ├── Middleware: CORS, JSON Parser, Validator, ErrorHandler    │
-│   ├── Routes: /api/tasks, /api/tasks/:id, /api/tasks/stats      │
-│   ├── Controller: TaskController (HTTP req/res translation)     │
-│   └── Service: TaskService (Business logic & SQL abstraction)   │
-└────────────────────────────────┬────────────────────────────────┘
-                                 │ Parameterized SQL ($1, $2, ...)
-                                 ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                    PostgreSQL Database                          │
-│   • Table: tasks (id, title, description, status, created_at)   │
-│   • Constraints: CHECK status IN ('Pending', 'Completed')       │
-│   • Indexes: idx_tasks_status, idx_tasks_created_at             │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-> **Security Note**: The frontend never connects directly to the PostgreSQL database. Database credentials (`DATABASE_URL`) are isolated on the server.
+| Layer | Technology |
+|-------|-----------|
+| **Frontend** | React 18, Vite 5, Vanilla CSS |
+| **Backend** | Node.js 20, Express 4 |
+| **Database** | PostgreSQL (prod) / pg-mem (dev fallback) |
+| **Testing** | Jest, Supertest |
+| **CI/CD** | GitHub Actions |
+| **Deployment** | Vercel (frontend) + Render (backend) |
 
 ---
 
-## Project Structure
+## 🚀 Local Development Setup
 
-```text
-taskflow/
-├── .github/
-│   └── workflows/
-│       └── ci.yml             # GitHub Actions CI matrix
-├── backend/
-│   ├── database/
-│   │   └── schema.sql         # PostgreSQL schema definition
-│   ├── src/
-│   │   ├── config/
-│   │   │   └── db.js          # PostgreSQL pool & fallback initialization
-│   │   ├── controllers/
-│   │   │   └── taskController.js # Request handlers
-│   │   ├── middleware/
-│   │   │   ├── errorHandler.js   # 404 and 500 error sanitizers
-│   │   │   └── validator.js      # Strict payload validation
-│   │   ├── routes/
-│   │   │   └── taskRoutes.js     # Route mappings
-│   │   ├── services/
-│   │   │   └── taskService.js    # SQL queries and business logic
-│   │   ├── app.js             # Express application setup
-│   │   └── server.js          # Server listener entry
-│   ├── tests/
-│   │   ├── apiIntegrationTest.js # Standalone test runner
-│   │   ├── dbTest.js             # Database test script
-│   │   └── taskApi.test.js       # Jest & Supertest test suite
-│   ├── .env.example
-│   └── package.json
-├── frontend/
-│   ├── public/
-│   │   └── favicon.svg        # Custom branded SVG favicon
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── DashboardGreeting.jsx
-│   │   │   ├── DeleteConfirmModal.jsx
-│   │   │   ├── EmptyState.jsx
-│   │   │   ├── Header.jsx
-│   │   │   ├── StatsOverview.jsx
-│   │   │   ├── TaskCard.jsx
-│   │   │   ├── TaskList.jsx
-│   │   │   ├── TaskModal.jsx
-│   │   │   ├── TaskToolbar.jsx
-│   │   │   └── ToastContainer.jsx
-│   │   ├── hooks/
-│   │   │   ├── useTasks.js
-│   │   │   ├── useTheme.js
-│   │   │   └── useToast.js
-│   │   ├── services/
-│   │   │   └── taskService.js # API client abstraction
-│   │   ├── styles/
-│   │   │   └── index.css      # SaaS design system & theme variables
-│   │   ├── utils/
-│   │   │   └── dateUtils.js   # Date formatting utilities
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── index.html
-│   ├── package.json
-│   ├── vercel.json            # Vercel SPA routing
-│   └── vite.config.js
-├── .env.example
-├── .gitignore
-├── README.md
-└── package.json               # Root scripts
-```
+### Prerequisites
+- **Node.js** v18+ (LTS)
+- **npm** v9+
+- **PostgreSQL** (optional — auto-fallback to in-memory DB)
 
----
-
-## Database Schema
-
-Defined in [`backend/database/schema.sql`](backend/database/schema.sql):
-
-```sql
-CREATE TABLE IF NOT EXISTS tasks (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  description TEXT,
-  status VARCHAR(50) NOT NULL DEFAULT 'Pending',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  CONSTRAINT chk_task_status CHECK (status IN ('Pending', 'Completed')),
-  CONSTRAINT chk_title_not_empty CHECK (LENGTH(TRIM(title)) > 0)
-);
-
-CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
-CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at DESC);
-```
-
-### Fields Overview
-
-| Field | Type | Constraints | Description |
-| :--- | :--- | :--- | :--- |
-| `id` | `SERIAL` | `PRIMARY KEY` | Auto-incrementing unique task identifier |
-| `title` | `VARCHAR(255)` | `NOT NULL`, Non-empty | Descriptive title of the task |
-| `description` | `TEXT` | Optional | Context, details, or notes |
-| `status` | `VARCHAR(50)` | `NOT NULL`, Default: `'Pending'` | Status: `'Pending'` or `'Completed'` |
-| `created_at` | `TIMESTAMP WITH TIME ZONE` | Default: `CURRENT_TIMESTAMP` | Server timestamp of creation |
-
----
-
-## REST API Documentation
-
-Base URL: `http://localhost:5000/api`
-
-### 1. Get All Tasks
-- **Route**: `GET /api/tasks`
-- **Query Parameters**:
-  - `status` (optional): Filter by `'Pending'` or `'Completed'`
-  - `search` (optional): Substring search against `title` and `description`
-- **Response** (`200 OK`):
-  ```json
-  {
-    "success": true,
-    "count": 2,
-    "data": [
-      {
-        "id": 1,
-        "title": "Review System Architecture",
-        "description": "Check clean REST API and database schema",
-        "status": "Pending",
-        "created_at": "2026-09-07T05:21:48.855Z"
-      }
-    ]
-  }
-  ```
-
-### 2. Get Task Statistics
-- **Route**: `GET /api/tasks/stats`
-- **Response** (`200 OK`):
-  ```json
-  {
-    "success": true,
-    "data": {
-      "total": 12,
-      "pending": 7,
-      "completed": 5
-    }
-  }
-  ```
-
-### 3. Get Task By ID
-- **Route**: `GET /api/tasks/:id`
-- **Response** (`200 OK`): Single task object
-- **Error Responses**:
-  - `400 Bad Request`: Non-numeric ID
-  - `404 Not Found`: Task does not exist
-
-### 4. Create Task
-- **Route**: `POST /api/tasks`
-- **Request Body**:
-  ```json
-  {
-    "title": "Configure production database",
-    "description": "Provision managed PostgreSQL on Supabase or Neon",
-    "status": "Pending"
-  }
-  ```
-- **Response** (`201 Created`):
-  ```json
-  {
-    "success": true,
-    "message": "Task created successfully.",
-    "data": {
-      "id": 15,
-      "title": "Configure production database",
-      "description": "Provision managed PostgreSQL on Supabase or Neon",
-      "status": "Pending",
-      "created_at": "2026-09-07T05:35:10.000Z"
-    }
-  }
-  ```
-- **Error Responses**:
-  - `400 Bad Request`: Missing or whitespace-only title
-
-### 5. Update Task
-- **Route**: `PUT /api/tasks/:id`
-- **Request Body**:
-  ```json
-  {
-    "title": "Configure production database (Updated)",
-    "description": "Finished schema migrations",
-    "status": "Completed"
-  }
-  ```
-- **Response** (`200 OK`): Updated task object
-- **Error Responses**:
-  - `400 Bad Request`: Invalid payload or invalid status
-  - `404 Not Found`: Task not found
-
-### 6. Toggle Status
-- **Route**: `PATCH /api/tasks/:id/status`
-- **Request Body**:
-  ```json
-  {
-    "status": "Completed"
-  }
-  ```
-- **Response** (`200 OK`):
-  ```json
-  {
-    "success": true,
-    "message": "Task status updated successfully.",
-    "data": {
-      "id": 15,
-      "status": "Completed"
-    }
-  }
-  ```
-
-### 7. Delete Task
-- **Route**: `DELETE /api/tasks/:id`
-- **Response** (`200 OK`):
-  ```json
-  {
-    "success": true,
-    "message": "Task deleted successfully.",
-    "data": { "id": 15 }
-  }
-  ```
-- **Error Responses**:
-  - `404 Not Found`: Task not found
-
----
-
-## Environment Variables
-
-Copy `.env.example` to `.env` in the backend or root folder:
+### 1. Clone & Install
 
 ```bash
-# Server Configuration
-PORT=5000
-NODE_ENV=development
-
-# PostgreSQL Connection String
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/taskflow
-
-# Frontend Client URL (for CORS)
-CORS_ORIGIN=http://localhost:5173
-
-# Frontend API URL (for Vite)
-VITE_API_URL=http://localhost:5000/api
-```
-
-> **Note on Database Portability**: If `DATABASE_URL` is omitted or an external PostgreSQL instance is unreachable during local evaluation, TaskFlow will seamlessly initialize an in-memory PostgreSQL engine (`pg-mem`) loaded with the exact schema so you can run the full system instantly with zero configuration!
-
----
-
-## Local Development Setup
-
-### 1. Prerequisites
-- **Node.js**: v18.x or v20.x+ (LTS)
-- **npm**: v9+
-- **PostgreSQL**: (Optional for local testing; automatic fallback provided)
-
-### 2. Installation
-Clone the repository and install dependencies:
-
-```bash
-git clone https://github.com/your-username/taskflow.git
-cd taskflow
+git clone https://github.com/sripriyancsbs/TaskFlow-Personal-Task-Management-System.git
+cd TaskFlow-Personal-Task-Management-System
 
 # Install backend dependencies
 npm --prefix backend install
@@ -357,107 +66,149 @@ npm --prefix backend install
 npm --prefix frontend install
 ```
 
-### 3. Running the Backend
+### 2. Configure Environment
+
 ```bash
-# Development mode with auto-reload
-npm --prefix backend run dev
-
-# Or standard start
-npm --prefix backend start
+# Copy example env files
+cp .env.example .env
+cp backend/.env.example backend/.env
 ```
-The API server will listen on `http://localhost:5000`.
 
-### 4. Running the Frontend
-In a separate terminal:
+Edit `backend/.env`:
+```env
+PORT=5000
+NODE_ENV=development
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/taskflow
+CORS_ORIGIN=http://localhost:5173
+```
+
+Edit `.env` (frontend):
+```env
+VITE_API_URL=http://localhost:5000/api
+```
+
+> **Zero-config mode**: Omit `DATABASE_URL` to run with the built-in in-memory database — no PostgreSQL install needed!
+
+### 3. Start the Servers
+
+**Terminal 1 — Backend:**
+```bash
+npm --prefix backend start
+# API available at http://localhost:5000
+```
+
+**Terminal 2 — Frontend:**
 ```bash
 npm --prefix frontend run dev
+# App available at http://localhost:5173
 ```
-Open your browser and navigate to `http://localhost:5173`.
 
 ---
 
-## Automated Testing
+## 🧪 Testing
 
-TaskFlow includes comprehensive automated tests covering all CRUD endpoints, status toggles, edge cases, and validation rules.
-
-### Running Jest Test Suite
 ```bash
+# Run full Jest + Supertest suite
 npm --prefix backend test
-```
 
-### Running Standalone Integration Runner
-```bash
+# Run standalone integration tests
 node backend/tests/apiIntegrationTest.js
 ```
 
-Both test suites execute all 14+ test cases and verify proper HTTP status codes (`200`, `201`, `400`, `404`).
+All 14+ test cases cover CRUD operations, validation, edge cases, and HTTP status codes.
 
 ---
 
-## CI/CD Pipeline
+## 📡 REST API Documentation
 
-Continuous Integration is managed via GitHub Actions in [`.github/workflows/ci.yml`](.github/workflows/ci.yml). On every push or pull request to `main`, the workflow:
-1. Provisions an `ubuntu-latest` runner with Node.js 20 LTS.
-2. Caches and installs backend dependencies.
-3. Executes the full backend test suite (`npm test`).
-4. Caches and installs frontend dependencies.
-5. Builds the production frontend bundle (`npm run build`).
+**Base URL:** `http://localhost:5000/api`
 
----
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/tasks` | List all tasks (filter by `status`, `search`) |
+| `GET` | `/tasks/stats` | Get task statistics (total, pending, completed) |
+| `GET` | `/tasks/:id` | Get a single task |
+| `POST` | `/tasks` | Create a new task |
+| `PUT` | `/tasks/:id` | Update a task |
+| `PATCH` | `/tasks/:id/status` | Toggle task status |
+| `DELETE` | `/tasks/:id` | Delete a task |
 
-## Deployment Guide
+<details>
+<summary><b>Example: Create Task</b></summary>
 
-### 1. Database (Hosted PostgreSQL)
-Create a managed PostgreSQL database on any cloud provider:
-- [Neon](https://neon.tech)
-- [Supabase](https://supabase.com)
-- [Railway](https://railway.app)
-- [Render](https://render.com)
+```http
+POST /api/tasks
+Content-Type: application/json
 
-Obtain your `DATABASE_URL` (e.g. `postgresql://user:pass@ep-cool-xyz.us-east-2.aws.neon.tech/taskflow?sslmode=require`).
-
-Run the schema migration:
-```bash
-psql $DATABASE_URL -f backend/database/schema.sql
+{
+  "title": "Review pull requests",
+  "description": "Check open PRs before the release",
+  "status": "Pending"
+}
 ```
 
-### 2. Backend Deployment (Render / Railway / Fly.io)
-1. Deploy the `backend/` directory as a Node.js web service.
-2. Set Environment Variables:
-   - `NODE_ENV=production`
-   - `DATABASE_URL=<your_postgres_url>`
-   - `CORS_ORIGIN=https://your-taskflow-frontend.vercel.app`
-3. Set start command to `node src/server.js`.
-
-### 3. Frontend Deployment (Vercel)
-1. Import your GitHub repository into [Vercel](https://vercel.com).
-2. Set Root Directory to `frontend` (or keep root with `frontend/dist` output).
-3. Set Build Command to `npm run build` and Output Directory to `dist`.
-4. Configure Environment Variable:
-   - `VITE_API_URL=https://your-backend-api.onrender.com/api`
-5. Deploy! Vercel handles SSL, CDN edge caching, and SPA routing via `vercel.json`.
+Response `201 Created`:
+```json
+{
+  "success": true,
+  "message": "Task created successfully.",
+  "data": {
+    "id": 5,
+    "title": "Review pull requests",
+    "description": "Check open PRs before the release",
+    "status": "Pending",
+    "created_at": "2026-09-07T10:00:00.000Z"
+  }
+}
+```
+</details>
 
 ---
 
-## Verification & Quality Checklist
+## ☁️ Deployment
 
-- [x] Application starts and compiles cleanly
-- [x] Frontend builds with zero bundle errors
-- [x] Backend REST API runs with structured status codes
-- [x] PostgreSQL schema with constraints (`chk_task_status`, `chk_title_not_empty`)
-- [x] Task creation with validation
-- [x] Task viewing and dynamic count statistics
-- [x] Task editing with modal UI
-- [x] Safe deletion with confirmation dialog
-- [x] Interactive status toggle (Pending ↔ Completed)
-- [x] Real-time title and description search
-- [x] Status filter tabs (All, Pending, Completed)
-- [x] Dark Mode and Light Mode with `localStorage` persistence
-- [x] Responsive layout (Desktop, Tablet, Mobile) without horizontal overflow
-- [x] Toast notification system
-- [x] Accessible keyboard navigation (Escape modal dismissal, focus states)
-- [x] Automated Jest & Supertest test suite passing 100%
-- [x] GitHub Actions CI pipeline configured
-- [x] Clean Git commit history and `.gitignore` protecting secrets
-#   T a s k F l o w - P e r s o n a l - T a s k - M a n a g e m e n t - S y s t e m  
- 
+### Frontend → Vercel
+
+1. Go to [vercel.com](https://vercel.com) → **Add New Project** → Import this repo
+2. Set **Root Directory** to `frontend`
+3. Set **Build Command** to `npm run build`
+4. Set **Output Directory** to `dist`
+5. Add environment variable:
+   - `VITE_API_URL` = `https://your-backend.onrender.com/api`
+6. Click **Deploy** ✅
+
+### Backend → Render
+
+1. Go to [render.com](https://render.com) → **New Web Service** → Connect this repo
+2. Set **Root Directory** to `backend`
+3. Set **Start Command** to `node src/server.js`
+4. Add environment variables:
+   - `NODE_ENV` = `production`
+   - `DATABASE_URL` = your PostgreSQL connection string
+   - `CORS_ORIGIN` = `https://your-app.vercel.app`
+5. Click **Deploy** ✅
+
+### Database → Neon (Free)
+
+1. Go to [neon.tech](https://neon.tech) → create a free database
+2. Copy the connection string → paste as `DATABASE_URL` in Render
+3. Run the schema: `psql $DATABASE_URL -f backend/database/schema.sql`
+
+---
+
+## ⌨️ Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+K` | Open Command Palette |
+| `N` | New Task |
+| `L` | List View |
+| `G` | Grid View |
+| `C` | Calendar View |
+| `Escape` | Close modal / panel |
+
+---
+
+## 📄 License
+
+MIT © [sripriyancsbs](https://github.com/sripriyancsbs)
