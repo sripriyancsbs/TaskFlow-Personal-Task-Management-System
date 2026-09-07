@@ -24,8 +24,7 @@ export default function Sidebar({
       id: 'dashboard',
       label: 'Dashboard',
       icon: <IconOverview className="sidebar-icon" />,
-      badge: stats.total > 0 ? stats.total : null,
-      badgeColor: 'badge-blue',
+      badge: null,
     },
     {
       id: 'insights',
@@ -85,30 +84,8 @@ export default function Sidebar({
         </ul>
       </nav>
 
-      {/* Bottom Mountain Card & New Task CTA */}
+      {/* Bottom Panel: Full-Width New Task CTA */}
       <div className="sidebar-bottom-panel">
-        {/* Real Productivity Progress Card */}
-        <div className="sidebar-progress-card">
-          <div className="sidebar-progress-header">
-            <span className="sidebar-progress-title">Daily Progress</span>
-            <span className="sidebar-progress-pct">
-              {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
-            </span>
-          </div>
-          <div className="sidebar-progress-track">
-            <div
-              className="sidebar-progress-fill"
-              style={{
-                width: `${stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%`,
-              }}
-            />
-          </div>
-          <p className="sidebar-progress-quote">
-            {stats.completed} of {stats.total} tasks completed
-          </p>
-        </div>
-
-        {/* Full-Width New Task Button with 'N' tag */}
         <button
           type="button"
           className="sidebar-bottom-add-btn"

@@ -4,7 +4,6 @@ import Sidebar from './components/Sidebar';
 import RightRail from './components/RightRail';
 import MobileBottomNav from './components/MobileBottomNav';
 import ProductivityHero from './components/ProductivityHero';
-import StatsOverview from './components/StatsOverview';
 import TaskToolbar from './components/TaskToolbar';
 import TaskList from './components/TaskList';
 import TaskDetailPanel from './components/TaskDetailPanel';
@@ -280,9 +279,6 @@ export default function App() {
                 <>
                   {/* Top Hero Banner matching reference */}
                   <ProductivityHero />
-
-                  {/* 4 Horizontal Metric Cards matching reference */}
-                  <StatsOverview stats={stats} />
 
                   {/* My Tasks Section */}
                   <section className="my-tasks-section-wrap" aria-label="My Tasks Workspace">
