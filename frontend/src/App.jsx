@@ -18,6 +18,22 @@ export default function App() {
   const { theme, toggleTheme } = useTheme();
   const toast = useToast();
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      return localStorage.getItem('taskflow_view_mode') || 'list';
+    } catch {
+      return 'list';
+    }
+  });
+
+  const handleViewModeChange = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('taskflow_view_mode', mode);
+    } catch {
+      // Ignore
+    }
+  };
 
   const {
     tasks,
@@ -46,7 +62,7 @@ export default function App() {
     handleDeleteTask,
   } = useTasks(toast);
 
-  // Global Keyboard Shortcuts (N for New, D for Dark, ? for Help)
+  // Global Keyboard Shortcuts (N for New, D for Dark, ? for Help, B for Board toggle)
   useEffect(() => {
     function handleKeyDown(e) {
       if (['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
@@ -58,6 +74,9 @@ export default function App() {
       } else if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         toggleTheme();
+      } else if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault();
+        handleViewModeChange(viewMode === 'list' ? 'board' : 'list');
       } else if (e.key === '?') {
         e.preventDefault();
         setIsShortcutsOpen(true);
@@ -65,7 +84,7 @@ export default function App() {
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [toggleTheme, setIsAddModalOpen]);
+  }, [toggleTheme, setIsAddModalOpen, viewMode]);
 
   const handleResetFilters = () => {
     setStatusFilter('All');
@@ -115,7 +134,7 @@ export default function App() {
         {/* Personalized Greeting */}
         <DashboardGreeting />
 
-        {/* Dynamic Statistics Cards */}
+        {/* Dynamic Statistics Cards with Gauge */}
         <StatsOverview stats={stats} />
 
         {/* Task Management Section */}
@@ -127,6 +146,8 @@ export default function App() {
             setPriorityFilter={setPriorityFilter}
             sortBy={sortBy}
             setSortBy={setSortBy}
+            viewMode={viewMode}
+            setViewMode={handleViewModeChange}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             onOpenAddModal={() => setIsAddModalOpen(true)}
@@ -140,6 +161,7 @@ export default function App() {
             priorityFilter={priorityFilter}
             searchQuery={searchQuery}
             hasAnyTasks={stats.total > 0}
+            viewMode={viewMode}
             onToggleStatus={handleToggleStatus}
             onEdit={(task) => setEditingTask(task)}
             onDelete={(task) => setDeletingTask(task)}
@@ -155,7 +177,7 @@ export default function App() {
       <footer className="app-footer">
         <div className="footer-container">
           <p className="footer-copyright">
-            TaskFlow Pro &copy; {new Date().getFullYear()} — Personal Task Management System. Built with React, Vite, Express & PostgreSQL.
+            TaskFlow Pro &copy; {new Date().getFullYear()} — Engineered with React, Vite, Express & PostgreSQL.
           </p>
         </div>
       </footer>

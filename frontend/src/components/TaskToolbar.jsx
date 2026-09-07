@@ -7,6 +7,8 @@ export default function TaskToolbar({
   setPriorityFilter,
   sortBy,
   setSortBy,
+  viewMode,
+  setViewMode,
   searchQuery,
   setSearchQuery,
   onOpenAddModal,
@@ -15,16 +17,16 @@ export default function TaskToolbar({
   const searchInputRef = useRef(null);
 
   const statusFilters = [
-    { key: 'All', label: 'All', count: stats.total },
+    { key: 'All', label: 'All Tasks', count: stats.total },
     { key: 'Pending', label: 'Pending', count: stats.pending },
     { key: 'Completed', label: 'Completed', count: stats.completed },
   ];
 
   const priorityOptions = [
     { key: 'All', label: 'All Priorities' },
-    { key: 'High', label: '🔥 High Priority' },
-    { key: 'Medium', label: '⚡ Medium Priority' },
-    { key: 'Low', label: '🌿 Low Priority' },
+    { key: 'High', label: '🔥 High' },
+    { key: 'Medium', label: '⚡ Medium' },
+    { key: 'Low', label: '🌿 Low' },
   ];
 
   // Focus search when pressing / or Ctrl+K
@@ -45,15 +47,52 @@ export default function TaskToolbar({
     <div className="task-toolbar-wrapper">
       <div className="toolbar-top-row">
         <div className="toolbar-title-group">
-          <h2 className="toolbar-section-title">My Tasks</h2>
-          <span className="tasks-count-pill">{stats.total} total</span>
+          <div className="section-title-wrap">
+            <h2 className="toolbar-section-title">Workflow Tasks</h2>
+            <span className="tasks-count-pill">{stats.total} total</span>
+          </div>
         </div>
 
         <div className="toolbar-actions-right">
+          {/* View Switcher: List vs Board */}
+          <div className="view-mode-toggle" role="group" aria-label="View mode">
+            <button
+              type="button"
+              className={`view-toggle-btn ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+              title="List View"
+              aria-label="List View"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="8" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" />
+                <line x1="3" y1="18" x2="3.01" y2="18" />
+              </svg>
+              <span>List</span>
+            </button>
+            <button
+              type="button"
+              className={`view-toggle-btn ${viewMode === 'board' ? 'active' : ''}`}
+              onClick={() => setViewMode('board')}
+              title="Kanban Board View"
+              aria-label="Kanban Board View"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="3" width="7" height="18" rx="2" />
+                <rect x="14" y="3" width="7" height="18" rx="2" />
+              </svg>
+              <span>Board</span>
+            </button>
+          </div>
+
+          {/* New Task Button */}
           <button
             type="button"
             id="btn-add-task"
-            className="btn-primary btn-add-task"
+            className="btn-primary btn-add-task glowing-btn"
             onClick={onOpenAddModal}
             title="Create a new task (Press N)"
           >
@@ -69,21 +108,21 @@ export default function TaskToolbar({
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            <span>Add Task</span>
+            <span>New Task</span>
             <kbd className="btn-kbd-hint">N</kbd>
           </button>
         </div>
       </div>
 
       <div className="toolbar-controls-row">
-        {/* Search Input */}
+        {/* Search Input with Spotlight Feel */}
         <div className="search-input-container">
           <svg
             className="search-input-icon"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="2.2"
             strokeLinecap="round"
             strokeLinejoin="round"
           >
@@ -95,7 +134,7 @@ export default function TaskToolbar({
             type="text"
             id="task-search-input"
             className="search-input"
-            placeholder="Search by title or description..."
+            placeholder="Search by title, context, or description..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             aria-label="Search tasks"
@@ -107,22 +146,15 @@ export default function TaskToolbar({
               onClick={() => setSearchQuery('')}
               aria-label="Clear search query"
             >
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
             </button>
           ) : (
-            <kbd className="search-kbd-pill" title="Press / to search">
-              /
-            </kbd>
+            <div className="search-shortcut-hint">
+              <kbd className="search-kbd-pill">/</kbd>
+            </div>
           )}
         </div>
 
@@ -141,7 +173,7 @@ export default function TaskToolbar({
                 onClick={() => setStatusFilter(filter.key)}
               >
                 <span>{filter.label}</span>
-                <span className="filter-badge">{filter.count}</span>
+                <span className={`filter-badge ${isActive ? 'active-badge' : ''}`}>{filter.count}</span>
               </button>
             );
           })}
@@ -171,11 +203,11 @@ export default function TaskToolbar({
             onChange={(e) => setSortBy(e.target.value)}
             aria-label="Sort tasks"
           >
-            <option value="newest">🕒 Newest First</option>
-            <option value="oldest">⏳ Oldest First</option>
-            <option value="priority">🔥 Priority (High &rarr; Low)</option>
-            <option value="dueDate">📅 Due Date (Soonest)</option>
-            <option value="title">🔤 Title (A &rarr; Z)</option>
+            <option value="newest">🕒 Newest</option>
+            <option value="oldest">⏳ Oldest</option>
+            <option value="priority">🔥 High Priority</option>
+            <option value="dueDate">📅 Due Date</option>
+            <option value="title">🔤 Title (A–Z)</option>
           </select>
         </div>
       </div>

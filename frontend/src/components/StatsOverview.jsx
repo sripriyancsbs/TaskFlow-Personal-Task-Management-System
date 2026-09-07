@@ -5,14 +5,19 @@ export default function StatsOverview({ stats }) {
   const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
   const isAllDone = total > 0 && completed === total;
 
+  // Circular gauge math (radius = 28, perimeter ~ 175.9)
+  const radius = 28;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (completionRate / 100) * circumference;
+
   return (
     <section className="stats-overview-section" aria-label="Task Statistics">
       {/* 100% Completion Celebration Banner */}
       {isAllDone && (
         <div className="celebration-banner" role="status">
-          <div className="celebration-icon">🎉</div>
+          <div className="celebration-icon">✨</div>
           <div className="celebration-text">
-            <strong>Outstanding work!</strong> You have cleared 100% of your tasks. Take a moment to celebrate your productivity!
+            <strong>All caught up!</strong> 100% of your workflow tasks have been completed.
           </div>
         </div>
       )}
@@ -41,10 +46,10 @@ export default function StatsOverview({ stats }) {
             </div>
           </div>
           <div className="stat-value-row">
-            <span className="stat-value" id="stat-total">{total}</span>
+            <span className="stat-value stat-value-gradient" id="stat-total">{total}</span>
           </div>
           <div className="stat-footer">
-            <span className="stat-subtext">All managed workflow tasks</span>
+            <span className="stat-subtext">All workflow items</span>
           </div>
         </div>
 
@@ -71,21 +76,21 @@ export default function StatsOverview({ stats }) {
             <span className="stat-value" id="stat-pending">{pending}</span>
           </div>
           <div className="stat-footer">
-            <span className="stat-subtext">Needs your focus & action</span>
+            <span className="stat-subtext">Awaiting your focus</span>
           </div>
         </div>
 
         {/* High Priority Card */}
         <div className="stat-card stat-card-urgent">
           <div className="stat-card-header">
-            <span className="stat-label">HIGH PRIORITY</span>
+            <span className="stat-label">URGENT FOCUS</span>
             <div className="stat-icon-wrapper urgent-icon-bg">
               <svg
                 className="stat-icon"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth="2.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
               >
@@ -94,18 +99,18 @@ export default function StatsOverview({ stats }) {
             </div>
           </div>
           <div className="stat-value-row">
-            <span className="stat-value" id="stat-urgent">{high_priority}</span>
-            {high_priority > 0 && <span className="stat-badge-urgent">Action needed</span>}
+            <span className="stat-value text-urgent" id="stat-urgent">{high_priority}</span>
+            {high_priority > 0 && <span className="stat-badge-urgent">🔥 High Priority</span>}
           </div>
           <div className="stat-footer">
-            <span className="stat-subtext">Urgent items awaiting review</span>
+            <span className="stat-subtext">High priority pending</span>
           </div>
         </div>
 
-        {/* Completed Tasks Card */}
+        {/* Completed Tasks Card with Circular Gauge */}
         <div className="stat-card stat-card-completed">
           <div className="stat-card-header">
-            <span className="stat-label">COMPLETED</span>
+            <span className="stat-label">COMPLETION RATE</span>
             <div className="stat-icon-wrapper completed-icon-bg">
               <svg
                 className="stat-icon"
@@ -121,21 +126,40 @@ export default function StatsOverview({ stats }) {
               </svg>
             </div>
           </div>
-          <div className="stat-value-row">
-            <span className="stat-value" id="stat-completed">{completed}</span>
-            <span className="stat-badge-rate">{completionRate}% Done</span>
+          <div className="stat-value-row stat-radial-row">
+            <div className="stat-radial-info">
+              <span className="stat-value" id="stat-completed">{completed}</span>
+              <span className="stat-sublabel">of {total} done</span>
+            </div>
+
+            {/* Circular Gauge */}
+            <div className="radial-gauge-container">
+              <svg className="radial-svg" width="70" height="70" viewBox="0 0 70 70">
+                <circle
+                  className="radial-bg-circle"
+                  cx="35"
+                  cy="35"
+                  r={radius}
+                  fill="none"
+                  strokeWidth="6"
+                />
+                <circle
+                  className="radial-fill-circle"
+                  cx="35"
+                  cy="35"
+                  r={radius}
+                  fill="none"
+                  strokeWidth="6"
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                />
+              </svg>
+              <span className="radial-percentage-text">{completionRate}%</span>
+            </div>
           </div>
           <div className="stat-footer">
-            <div className="completion-bar-track">
-              <div
-                className="completion-bar-fill"
-                style={{ width: `${completionRate}%` }}
-                role="progressbar"
-                aria-valuenow={completionRate}
-                aria-valuemin="0"
-                aria-valuemax="100"
-              />
-            </div>
+            <span className="stat-subtext">{isAllDone ? 'All tasks complete!' : `${100 - completionRate}% remaining`}</span>
           </div>
         </div>
       </div>
