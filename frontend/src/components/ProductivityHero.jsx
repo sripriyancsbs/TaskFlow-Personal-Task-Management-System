@@ -3,9 +3,7 @@ import { formatFullTodayDate, getTimeBasedGreeting } from '../utils/dateUtils';
 
 export default function ProductivityHero() {
   const dateFormatted = formatFullTodayDate();
-  const greetingBase = getTimeBasedGreeting();
-  // Format greeting: "Good morning, Sripriyan 👋"
-  const greetingPrefix = greetingBase.replace(' 👋', '').replace(' ☀️', '').replace(' 🌙', '');
+  const greetingPrefix = getTimeBasedGreeting();
 
   return (
     <div className="reference-hero-banner">
