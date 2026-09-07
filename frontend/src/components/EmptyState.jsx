@@ -1,4 +1,5 @@
 import React from 'react';
+import { IconPlus, IconCheck, IconSearch } from './Icons';
 
 export default function EmptyState({
   statusFilter,
@@ -8,49 +9,42 @@ export default function EmptyState({
   onOpenAddModal,
   onResetFilters,
 }) {
-  let title = 'No tasks yet';
-  let subtitle = 'Create your first task and start getting things done.';
+  let title = 'Nothing on your board.';
+  let subtitle = 'Create a task and start moving.';
   let showAddBtn = true;
+  let icon = <IconPlus className="w-8 h-8 text-cyan-400" />;
 
   if (searchQuery && searchQuery.trim()) {
-    title = 'No tasks found';
-    subtitle = `No results matching "${searchQuery}". Try a different keyword or reset filters.`;
+    title = 'No matching tasks.';
+    subtitle = 'Try a different search term or clear the filter.';
     showAddBtn = false;
-  } else if (priorityFilter && priorityFilter !== 'All') {
-    title = `No ${priorityFilter.toLowerCase()} priority tasks`;
-    subtitle = `There are currently no tasks marked with ${priorityFilter} priority.`;
-    showAddBtn = false;
-  } else if (statusFilter === 'Pending') {
-    title = 'No pending tasks';
-    subtitle = 'All caught up! Great job clearing your queue.';
-    showAddBtn = false;
+    icon = <IconSearch className="w-8 h-8 text-muted" />;
+  } else if (statusFilter === 'Pending' || (!hasAnyTasks && statusFilter === 'All')) {
+    title = 'Nothing on your board.';
+    subtitle = 'Create a task and start moving.';
+    showAddBtn = true;
+    icon = <IconPlus className="w-8 h-8 text-cyan-400" />;
   } else if (statusFilter === 'Completed') {
-    title = 'No completed tasks';
-    subtitle = 'Complete a pending task to see your progress recorded here.';
+    title = "You're done for now.";
+    subtitle = 'Your task list is clear. Complete pending tasks to see history.';
     showAddBtn = false;
+    icon = <IconCheck className="w-8 h-8 text-emerald-400" />;
+  } else if (priorityFilter && priorityFilter !== 'All') {
+    title = `No ${priorityFilter} priority tasks.`;
+    subtitle = `No tasks currently assigned ${priorityFilter} priority.`;
+    showAddBtn = false;
+    icon = <IconSearch className="w-8 h-8 text-muted" />;
+  } else if (hasAnyTasks) {
+    title = "You're done for now.";
+    subtitle = 'Your task list is clear.';
+    showAddBtn = true;
+    icon = <IconCheck className="w-8 h-8 text-emerald-400" />;
   }
 
   return (
     <div className="empty-state-wrapper">
       <div className="empty-state-card">
-        <div className="empty-illustration">
-          <svg
-            className="empty-icon-svg"
-            viewBox="0 0 64 64"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <rect x="10" y="14" width="44" height="42" rx="6" />
-            <path d="M22 6v8" />
-            <path d="M42 6v8" />
-            <line x1="10" y1="24" x2="54" y2="24" />
-            <circle cx="32" cy="38" r="7" strokeDasharray="3 3" />
-            <path d="M30 38l2 2 4-4" />
-          </svg>
-        </div>
+        <div className="empty-icon-halo">{icon}</div>
 
         <h3 className="empty-title">{title}</h3>
         <p className="empty-subtitle">{subtitle}</p>
@@ -59,30 +53,19 @@ export default function EmptyState({
           {showAddBtn ? (
             <button
               type="button"
-              className="btn-primary empty-add-btn"
+              className="btn-new-task-primary empty-add-btn"
               onClick={onOpenAddModal}
             >
-              <svg
-                className="btn-icon"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              <span>Create Your First Task</span>
+              <IconPlus className="w-4 h-4 mr-1.5" />
+              <span>Create Task</span>
             </button>
           ) : (
             <button
               type="button"
-              className="btn-secondary empty-reset-btn"
+              className="btn-reset-filters empty-reset-btn"
               onClick={onResetFilters}
             >
-              <span>Clear Filters & Search</span>
+              <span>Clear Filters</span>
             </button>
           )}
         </div>

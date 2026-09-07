@@ -44,16 +44,19 @@ export default function TaskModal({
     }
   }, [isOpen, initialData]);
 
-  // Handle ESC key press
+  // Handle ESC key press and Ctrl+Enter submit
   useEffect(() => {
     function handleKeyDown(e) {
       if (e.key === 'Escape' && isOpen && !isSaving) {
         onClose();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter' && isOpen && !isSaving) {
+        e.preventDefault();
+        handleSubmit(e);
       }
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, isSaving, onClose]);
+  }, [isOpen, isSaving, onClose, title, description, priority, dueDate, status, isEditing]);
 
   if (!isOpen) return null;
 
@@ -292,7 +295,10 @@ export default function TaskModal({
                   <span>Saving...</span>
                 </>
               ) : (
-                <span>{isEditing ? 'Save Changes' : 'Create Task'}</span>
+                <>
+                  <span>{isEditing ? 'Save Changes' : 'Create Task'}</span>
+                  <kbd className="modal-kbd-hint">Ctrl ↵</kbd>
+                </>
               )}
             </button>
           </div>

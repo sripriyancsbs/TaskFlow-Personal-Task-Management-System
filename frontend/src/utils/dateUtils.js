@@ -81,3 +81,37 @@ export function getTimeBasedGreeting() {
   if (hour < 18) return 'Good afternoon ☀️';
   return 'Good evening 🌙';
 }
+
+export function formatFullTodayDate() {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date());
+}
+
+/**
+ * Format timestamp into human-readable relative time (e.g. '10m ago', '2h ago', 'Yesterday')
+ * @param {string|Date} dateInput
+ * @returns {string}
+ */
+export function formatRelativeTime(dateInput) {
+  if (!dateInput) return '';
+  const date = new Date(dateInput);
+  if (isNaN(date.getTime())) return '';
+
+  const now = new Date();
+  const diffMs = now - date;
+  const diffSec = Math.floor(diffMs / 1000);
+
+  if (diffSec < 45) return 'Just now';
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDays = Math.floor(diffHr / 24);
+  if (diffDays === 1) return 'Yesterday';
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return formatDate(date);
+}
