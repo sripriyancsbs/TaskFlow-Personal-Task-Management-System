@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { taskService, ApiError } from '../services/taskService';
+import { taskService } from '../services/taskService';
 
 export function useTasks(toast) {
   const [tasks, setTasks] = useState([]);
@@ -8,6 +8,12 @@ export function useTasks(toast) {
   const [statusFilter, setStatusFilter] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Stable ref for toast methods to avoid effect re-execution
+  const toastRef = useRef(toast);
+  useEffect(() => {
+    toastRef.current = toast;
+  }, [toast]);
 
   // Modal dialog states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -44,30 +50,33 @@ export function useTasks(toast) {
       setTasks(data);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
-      toast.error(err.message || 'Unable to load tasks from server.');
+      toastRef.current?.error(err.message || 'Unable to load tasks from server.');
     } finally {
       setLoading(false);
     }
-  }, [statusFilter, debouncedSearch, toast]);
+  }, [statusFilter, debouncedSearch]);
 
-  // Initial load
+  // Initial load & on filter/search changes
   useEffect(() => {
     fetchTasks(true);
+  }, [fetchTasks]);
+
+  useEffect(() => {
     fetchStats();
-  }, [fetchTasks, fetchStats]);
+  }, [fetchStats]);
 
   // Create Task
   const handleCreateTask = async (taskData) => {
     setActionLoading(true);
     try {
-      const newTask = await taskService.createTask(taskData);
-      toast.success('Task created successfully.');
+      await taskService.createTask(taskData);
+      toastRef.current?.success('Task created successfully.');
       setIsAddModalOpen(false);
       // Refresh list and stats
       await Promise.all([fetchTasks(false), fetchStats()]);
       return true;
     } catch (err) {
-      toast.error(err.message || 'Failed to create task.');
+      toastRef.current?.error(err.message || 'Failed to create task.');
       return false;
     } finally {
       setActionLoading(false);
@@ -78,14 +87,14 @@ export function useTasks(toast) {
   const handleUpdateTask = async (id, taskData) => {
     setActionLoading(true);
     try {
-      const updated = await taskService.updateTask(id, taskData);
-      toast.success('Task updated successfully.');
+      await taskService.updateTask(id, taskData);
+      toastRef.current?.success('Task updated successfully.');
       setEditingTask(null);
       // Refresh list and stats
       await Promise.all([fetchTasks(false), fetchStats()]);
       return true;
     } catch (err) {
-      toast.error(err.message || 'Failed to update task.');
+      toastRef.current?.error(err.message || 'Failed to update task.');
       return false;
     } finally {
       setActionLoading(false);
@@ -110,16 +119,15 @@ export function useTasks(toast) {
 
     try {
       await taskService.updateTaskStatus(task.id, newStatus);
-      toast.success(
+      toastRef.current?.success(
         newStatus === 'Completed' ? 'Task marked as completed.' : 'Task changed to pending.'
       );
-      // Fetch latest stats to ensure consistency
       fetchStats();
     } catch (err) {
       // Revert on error
       setTasks(originalTasks);
       setStats(originalStats);
-      toast.error(err.message || 'Failed to update task status.');
+      toastRef.current?.error(err.message || 'Failed to update task status.');
     }
   };
 
@@ -142,7 +150,7 @@ export function useTasks(toast) {
 
     try {
       await taskService.deleteTask(id);
-      toast.success('Task deleted successfully.');
+      toastRef.current?.success('Task deleted successfully.');
       setDeletingTask(null);
       fetchStats();
       return true;
@@ -150,7 +158,7 @@ export function useTasks(toast) {
       // Rollback
       setTasks(originalTasks);
       setStats(originalStats);
-      toast.error(err.message || 'Failed to delete task.');
+      toastRef.current?.error(err.message || 'Failed to delete task.');
       return false;
     } finally {
       setActionLoading(false);
