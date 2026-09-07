@@ -90,17 +90,8 @@ export default function TaskCard({
           <span>{formattedDate}</span>
         </div>
 
-        {/* Action Icons matching reference: Play, Edit, Trash */}
+        {/* Action Icons: Edit, Trash */}
         <div className="ref-actions-bar">
-          <button
-            type="button"
-            className="ref-action-icon-btn"
-            onClick={handleStartFocus}
-            title="Start Focus on this task"
-            aria-label="Start Focus"
-          >
-            <IconPlay className="w-3.5 h-3.5" />
-          </button>
 
           <button
             type="button"

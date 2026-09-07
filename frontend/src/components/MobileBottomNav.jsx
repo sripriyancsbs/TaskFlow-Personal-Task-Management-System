@@ -17,27 +17,12 @@ export default function MobileBottomNav({
     <nav className="mobile-bottom-dock" aria-label="Mobile navigation">
       <button
         type="button"
-        className={`mobile-dock-item ${activeNav === 'overview' ? 'dock-item-active' : ''}`}
-        onClick={() => onSelectNav('overview')}
-        aria-label="Overview"
+        className={`mobile-dock-item ${activeNav === 'dashboard' ? 'dock-item-active' : ''}`}
+        onClick={() => onSelectNav('dashboard')}
+        aria-label="Dashboard"
       >
         <IconOverview className="dock-icon" />
-        <span className="dock-label">Overview</span>
-      </button>
-
-      <button
-        type="button"
-        className={`mobile-dock-item ${activeNav === 'tasks' ? 'dock-item-active' : ''}`}
-        onClick={() => onSelectNav('tasks')}
-        aria-label="My Tasks"
-      >
-        <div className="dock-icon-wrap">
-          <IconTasks className="dock-icon" />
-          {stats.pending > 0 && (
-            <span className="dock-badge">{stats.pending}</span>
-          )}
-        </div>
-        <span className="dock-label">Tasks</span>
+        <span className="dock-label">Dashboard</span>
       </button>
 
       {/* Center Floating Action Button */}
@@ -53,22 +38,16 @@ export default function MobileBottomNav({
 
       <button
         type="button"
-        className={`mobile-dock-item ${activeNav === 'today' ? 'dock-item-active' : ''}`}
-        onClick={() => onSelectNav('today')}
-        aria-label="Today's Priorities"
+        className={`mobile-dock-item ${activeNav === 'insights' ? 'dock-item-active' : ''}`}
+        onClick={() => onSelectNav('insights')}
+        aria-label="Productivity Insights"
       >
-        <IconToday className="dock-icon" />
-        <span className="dock-label">Today</span>
-      </button>
-
-      <button
-        type="button"
-        className={`mobile-dock-item ${activeNav === 'completed' ? 'dock-item-active' : ''}`}
-        onClick={() => onSelectNav('completed')}
-        aria-label="Completed archive"
-      >
-        <IconCompleted className="dock-icon" />
-        <span className="dock-label">Done</span>
+        <svg className="dock-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="18" y1="20" x2="18" y2="10" />
+          <line x1="12" y1="20" x2="12" y2="4" />
+          <line x1="6" y1="20" x2="6" y2="14" />
+        </svg>
+        <span className="dock-label">Insights</span>
       </button>
     </nav>
   );

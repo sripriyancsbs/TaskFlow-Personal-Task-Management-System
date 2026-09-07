@@ -20,6 +20,8 @@ export default function TaskToolbar({
   setSearchQuery,
   onOpenAddModal,
   stats = { total: 0, pending: 0, completed: 0 },
+  todayCount = 0,
+  upcomingCount = 0,
 }) {
   return (
     <div className="reference-my-tasks-header-block">
@@ -45,7 +47,7 @@ export default function TaskToolbar({
 
       {/* Filter Controls Row matching reference */}
       <div className="my-tasks-controls-bar">
-        {/* Status Pills: All (3) | Pending (2) | Completed (1) */}
+        {/* Status Pills: All | Today | Upcoming | Pending | Completed */}
         <div className="status-pills-cluster" role="radiogroup">
           <button
             type="button"
@@ -53,6 +55,20 @@ export default function TaskToolbar({
             onClick={() => setStatusFilter('All')}
           >
             All ({stats.total})
+          </button>
+          <button
+            type="button"
+            className={`ref-status-pill ${statusFilter === 'Today' ? 'pill-active-electric' : ''}`}
+            onClick={() => setStatusFilter('Today')}
+          >
+            Today ({todayCount})
+          </button>
+          <button
+            type="button"
+            className={`ref-status-pill ${statusFilter === 'Upcoming' ? 'pill-active-electric' : ''}`}
+            onClick={() => setStatusFilter('Upcoming')}
+          >
+            Upcoming ({upcomingCount})
           </button>
           <button
             type="button"

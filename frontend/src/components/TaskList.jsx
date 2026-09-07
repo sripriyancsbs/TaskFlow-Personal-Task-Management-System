@@ -42,19 +42,6 @@ export default function TaskList({
     );
   }
 
-  // Focus View Mode
-  if (viewMode === 'focus') {
-    return (
-      <TaskFocusView
-        tasks={tasks}
-        focusedTaskId={focusedTaskId}
-        onSelectFocusedTaskId={onSelectFocusedTaskId}
-        onToggleStatus={onToggleStatus}
-        onExitFocus={onExitFocus}
-        isActionLoading={actionLoading}
-      />
-    );
-  }
 
   // Board / Kanban View Mode
   if (viewMode === 'board') {

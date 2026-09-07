@@ -24,58 +24,19 @@ export default function Sidebar({
       id: 'dashboard',
       label: 'Dashboard',
       icon: <IconOverview className="sidebar-icon" />,
-      badge: null,
-    },
-    {
-      id: 'tasks',
-      label: 'My Tasks',
-      icon: <IconTasks className="sidebar-icon" />,
       badge: stats.total > 0 ? stats.total : null,
       badgeColor: 'badge-blue',
-    },
-    {
-      id: 'today',
-      label: 'Today',
-      icon: <IconToday className="sidebar-icon" />,
-      badge: todayCount > 0 ? todayCount : null,
-      badgeColor: 'badge-red',
-    },
-    {
-      id: 'upcoming',
-      label: 'Upcoming',
-      icon: <IconUpcoming className="sidebar-icon" />,
-      badge: upcomingCount > 0 ? upcomingCount : null,
-      badgeColor: 'badge-green',
-    },
-    {
-      id: 'completed',
-      label: 'Completed',
-      icon: <IconCompleted className="sidebar-icon" />,
-      badge: stats.completed > 0 ? stats.completed : null,
-      badgeColor: 'badge-green',
-    },
-    {
-      id: 'focus',
-      label: 'Focus Mode',
-      icon: <IconFocus className="sidebar-icon" />,
-      badge: null,
     },
     {
       id: 'insights',
       label: 'Insights',
       icon: (
-        <svg className="sidebar-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg className="sidebar-icon" width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="20" x2="18" y2="10" />
           <line x1="12" y1="20" x2="12" y2="4" />
           <line x1="6" y1="20" x2="6" y2="14" />
         </svg>
       ),
-      badge: null,
-    },
-    {
-      id: 'settings',
-      label: 'Settings',
-      icon: <IconSettings className="sidebar-icon" />,
       badge: null,
     },
   ];
