@@ -37,7 +37,8 @@ async function initPostgresPool() {
   }
 
   const isProduction = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
-  const connectionString = process.env.DATABASE_URL;
+  const NEON_PRODUCTION_DB_URL = 'postgresql://neondb_owner:npg_C0y9nXSpbYLR@ep-wild-cherry-aw3a6o5s-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+  const connectionString = process.env.DATABASE_URL || (isProduction ? NEON_PRODUCTION_DB_URL : process.env.DATABASE_URL);
 
   // 1. If DATABASE_URL is provided, connect to live PostgreSQL
   if (connectionString) {
