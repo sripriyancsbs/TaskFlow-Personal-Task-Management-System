@@ -12,7 +12,6 @@ function notFoundHandler(req, res, next) {
  * Centralized Error Handling Middleware
  */
 function errorHandler(err, req, res, next) {
-  // Log error internally for debugging without exposing to client
   console.error('[API Error]:', err.message);
 
   // PostgreSQL check constraint or validation violation
@@ -23,7 +22,19 @@ function errorHandler(err, req, res, next) {
     });
   }
 
-  // PostgreSQL syntax / query failure
+  // Database connection / configuration failure (e.g. missing DATABASE_URL or unreachable host)
+  if (
+    err.message?.includes('DATABASE_URL') ||
+    err.message?.includes('Database connection failed') ||
+    err.code === 'ECONNREFUSED' ||
+    err.code === 'ENOTFOUND'
+  ) {
+    return res.status(503).json({
+      success: false,
+      error: 'PostgreSQL database is currently unavailable or DATABASE_URL is not configured. Please check database settings.',
+    });
+  }
+
   const statusCode = err.statusCode || (err.status >= 400 && err.status < 600 ? err.status : 500);
 
   res.status(statusCode).json({

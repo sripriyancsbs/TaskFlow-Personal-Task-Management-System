@@ -4712,3 +4712,59 @@ kbd {
   border-color: rgba(239, 68, 68, 0.4);
   color: #f87171;
 }
+
+/* Production Database / Server Error Alert Banner */
+.server-error-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius-md, 8px);
+  padding: 12px 18px;
+  margin-bottom: 1.25rem;
+  color: #fee2e2;
+  box-shadow: 0 4px 16px rgba(239, 68, 68, 0.08);
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+.server-error-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.server-error-content {
+  flex: 1;
+}
+
+.server-error-title {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #f87171;
+  margin-bottom: 2px;
+  letter-spacing: 0.01em;
+}
+
+.server-error-message {
+  font-size: 12.5px;
+  color: #fca5a5;
+  line-height: 1.4;
+}
+
+.server-error-retry-btn {
+  background: #dc2626;
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm, 6px);
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.server-error-retry-btn:hover {
+  background: #ef4444;
+  transform: translateY(-1px);
+}

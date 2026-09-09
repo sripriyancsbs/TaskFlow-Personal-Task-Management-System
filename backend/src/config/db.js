@@ -2,7 +2,7 @@ const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
-let pool;
+let pool = null;
 let isInMemory = false;
 
 const schemaPath = path.join(__dirname, '../../database/schema.sql');
@@ -26,32 +26,30 @@ const schemaSql = fs.existsSync(schemaPath)
     CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at DESC);
   `;
 
-const storageDir = path.join(__dirname, '../../database');
-const storagePath = path.join(storageDir, 'tasks_storage.json');
-
-async function persistTasksToDisk() {
-  if (!isInMemory || process.env.NODE_ENV === 'test' || !pool) return;
-  try {
-    const res = await pool.query('SELECT id, title, description, status, priority, due_date, created_at FROM tasks ORDER BY id ASC');
-    if (!fs.existsSync(storageDir)) {
-      fs.mkdirSync(storageDir, { recursive: true });
-    }
-    fs.writeFileSync(storagePath, JSON.stringify(res.rows, null, 2), 'utf8');
-  } catch (err) {
-    console.error('Error persisting tasks to disk:', err.message);
-  }
-}
-
+/**
+ * Initialize PostgreSQL connection pool and run idempotent schema migration.
+ * In production/Vercel environments, a valid DATABASE_URL is strictly required.
+ * Silent fallback to mock/in-memory storage is strictly prohibited.
+ */
 async function initPostgresPool() {
+  if (pool) {
+    return pool;
+  }
+
+  const isProduction = process.env.NODE_ENV === 'production' || !!process.env.VERCEL;
   const connectionString = process.env.DATABASE_URL;
 
+  // 1. If DATABASE_URL is provided, connect to live PostgreSQL
   if (connectionString) {
     const isRemote = !connectionString.includes('localhost') && !connectionString.includes('127.0.0.1');
     const poolConfig = {
       connectionString,
+      max: process.env.VERCEL ? 3 : 10, // Optimize pool size for serverless
+      idleTimeoutMillis: 10000,
+      connectionTimeoutMillis: 8000,
     };
 
-    if (isRemote || connectionString.includes('sslmode=require')) {
+    if (isRemote || connectionString.includes('sslmode=require') || connectionString.includes('neon.tech') || connectionString.includes('supabase.co')) {
       poolConfig.ssl = {
         rejectUnauthorized: false,
       };
@@ -66,17 +64,29 @@ async function initPostgresPool() {
 
       console.log('✓ Successfully connected to PostgreSQL database and verified schema.');
       pool = livePool;
+      isInMemory = false;
       return pool;
     } catch (err) {
-      console.warn(`! Live PostgreSQL connection failed (${err.message}). Falling back to in-memory PostgreSQL engine.`);
+      console.error(`! Live PostgreSQL connection failed: ${err.message}`);
+      if (isProduction) {
+        // Strict failure in production: Do NOT mask connection failure with sample data
+        throw new Error(`Database connection failed: ${err.message}. Please check DATABASE_URL.`);
+      }
     }
   }
 
-  // Fallback to in-memory PostgreSQL (pg-mem) for seamless local dev & tests
+  // 2. Strict Production Guard: Refuse in-memory fallback in production / Vercel
+  if (isProduction) {
+    const err = new Error('DATABASE_URL environment variable is missing in production. PostgreSQL connection is required for persistent storage.');
+    console.error(`[DB Error]: ${err.message}`);
+    throw err;
+  }
+
+  // 3. In-memory PostgreSQL (pg-mem) ONLY for local test / offline development
+  console.log('ℹ Using in-memory database for local testing/development environment.');
   const { newDb, DataType } = require('pg-mem');
   const db = newDb();
-  
-  // Register functions that pg-mem doesn't have built-in
+
   db.public.registerFunction({
     name: 'trim',
     args: [DataType.text],
@@ -92,98 +102,51 @@ async function initPostgresPool() {
 
   db.public.none(schemaSql);
 
-  const isTest = process.env.NODE_ENV === 'test';
-  let loadedFromDisk = false;
-
-  if (!isTest && fs.existsSync(storagePath)) {
-    try {
-      const fileData = fs.readFileSync(storagePath, 'utf8');
-      const savedTasks = JSON.parse(fileData);
-      if (Array.isArray(savedTasks) && savedTasks.length > 0) {
-        const table = db.getTable('tasks');
-        let maxId = 0;
-
-        const esc = (val) => {
-          if (val === null || val === undefined) return 'NULL';
-          return `'` + String(val).replace(/'/g, "''") + `'`;
-        };
-
-        const values = savedTasks.map((t) => {
-          const id = Number(t.id);
-          if (id > maxId) maxId = id;
-          return `(${id}, ${esc(t.title)}, ${esc(t.description || '')}, ${esc(t.status || 'Pending')}, ${esc(t.priority || 'Medium')}, ${t.due_date ? esc(t.due_date) : 'NULL'}, ${esc(t.created_at || new Date().toISOString())})`;
-        }).join(',\n');
-
-        db.public.none(
-          `INSERT INTO tasks (id, title, description, status, priority, due_date, created_at) VALUES ${values};`
-        );
-
-        // Advance pg-mem serial counter so new tasks increment without colliding
-        if (maxId > 0) {
-          const tx = db.data;
-          let serials = tx.getMap(table.serialsId);
-          serials = serials.set('id', maxId);
-          tx.set(table.serialsId, serials);
-        }
-
-        loadedFromDisk = true;
-        console.log(`✓ Restored ${savedTasks.length} tasks from persistent storage (${storagePath}).`);
-      }
-    } catch (readErr) {
-      console.warn('! Could not read existing tasks_storage.json, re-seeding starter tasks:', readErr.message);
-    }
-  }
-
-  if (!loadedFromDisk) {
-    // Insert initial starter sample tasks with rich priorities and dates
-    const nowMs = Date.now();
-    const twoDaysAgo = new Date(nowMs - 2 * 86400000).toISOString();
-    const threeHoursAgo = new Date(nowMs - 3 * 3600000).toISOString();
-    const fortyFiveMinsAgo = new Date(nowMs - 45 * 60000).toISOString();
-
-    db.public.none(`
-      INSERT INTO tasks (title, description, status, priority, due_date, created_at) VALUES 
-        ('Welcome to TaskFlow', 'Explore features like real-time search, priority filters, dark mode, keyboard shortcuts, and export.', 'Completed', 'Low', NOW() + INTERVAL '3 days', '${twoDaysAgo}'),
-        ('Review System Architecture', 'Check the clean REST API, database schema, and responsive UI components.', 'Pending', 'High', NOW() + INTERVAL '1 day', '${threeHoursAgo}'),
-        ('Deploy to Vercel and PostgreSQL', 'Configure production environment variables for cloud hosting.', 'Pending', 'Medium', NOW() + INTERVAL '5 days', '${fortyFiveMinsAgo}');
-    `);
-  }
-
   const pgAdapter = db.adapters.createPg();
   pool = new pgAdapter.Pool();
   isInMemory = true;
-  console.log('✓ Initialized in-memory PostgreSQL engine with TaskFlow schema.');
-
-  if (!isTest && !loadedFromDisk) {
-    persistTasksToDisk().catch((e) => console.error('Initial disk save error:', e));
-  }
-
   return pool;
 }
 
-// Wrapper for query execution with auto-persistence on mutations
+/**
+ * Execute query against the PostgreSQL pool
+ */
 async function query(text, params = []) {
   if (!pool) {
     await initPostgresPool();
   }
-  const result = await pool.query(text, params);
+  return pool.query(text, params);
+}
 
-  const trimmed = typeof text === 'string' ? text.trim().toUpperCase() : '';
-  if (
-    trimmed.startsWith('INSERT') ||
-    trimmed.startsWith('UPDATE') ||
-    trimmed.startsWith('DELETE')
-  ) {
-    persistTasksToDisk().catch((e) => console.error('Auto-persistence error:', e));
+/**
+ * Health check helper to verify database connectivity
+ */
+async function checkDbConnection() {
+  try {
+    if (!pool) {
+      await initPostgresPool();
+    }
+    const start = Date.now();
+    await pool.query('SELECT 1');
+    const latencyMs = Date.now() - start;
+
+    return {
+      connected: true,
+      dialect: isInMemory ? 'pg-mem (in-memory)' : 'PostgreSQL',
+      latencyMs,
+    };
+  } catch (err) {
+    return {
+      connected: false,
+      error: err.message,
+    };
   }
-
-  return result;
 }
 
 module.exports = {
   query,
   initPostgresPool,
+  checkDbConnection,
   getPool: () => pool,
   isInMemory: () => isInMemory,
-  persistTasksToDisk,
 };

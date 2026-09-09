@@ -39,6 +39,7 @@ export default function App() {
     tasks,
     stats,
     loading,
+    serverError,
     statusFilter,
     setStatusFilter,
     priorityFilter,
@@ -60,6 +61,7 @@ export default function App() {
     handleUpdateTask,
     handleToggleStatus,
     handleDeleteTask,
+    refreshTasks,
   } = useTasks(toast);
 
   // Sync selectedDetailTask if tasks update
@@ -297,6 +299,24 @@ export default function App() {
               {/* TAB 1: DASHBOARD (Home Command Center) */}
               {activeNav !== 'insights' && (
                 <>
+                  {/* Database / Backend Connection Alert Banner */}
+                  {serverError && (
+                    <div className="server-error-banner" role="alert">
+                      <div className="server-error-icon">⚠️</div>
+                      <div className="server-error-content">
+                        <div className="server-error-title">Database Service Notice</div>
+                        <div className="server-error-message">{serverError}</div>
+                      </div>
+                      <button
+                        type="button"
+                        className="server-error-retry-btn"
+                        onClick={() => refreshTasks(true)}
+                      >
+                        Retry Connection
+                      </button>
+                    </div>
+                  )}
+
                   {/* Top Hero Banner matching reference */}
                   <ProductivityHero />
 

@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const taskRoutes = require('./routes/taskRoutes');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
+const { checkDbConnection } = require('./config/db');
 
 const app = express();
 
@@ -24,12 +25,17 @@ app.use(
 // Body parser
 app.use(express.json());
 
-// API Health Check
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
+// API Health Check with live Database verification
+app.get('/api/health', async (req, res) => {
+  const dbHealth = await checkDbConnection();
+  const isOk = dbHealth.connected;
+
+  res.status(isOk ? 200 : 503).json({
+    status: isOk ? 'ok' : 'degraded',
     service: 'TaskFlow REST API',
+    environment: process.env.NODE_ENV || 'development',
     timestamp: new Date().toISOString(),
+    database: dbHealth,
   });
 });
 

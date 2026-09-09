@@ -9,6 +9,14 @@ beforeAll(async () => {
 describe('TaskFlow REST API Test Suite', () => {
   let createdTaskId;
 
+  test('GET /api/health returns 200 and database health status', async () => {
+    const res = await request(app).get('/api/health');
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('ok');
+    expect(res.body.database).toBeDefined();
+    expect(res.body.database.connected).toBe(true);
+  });
+
   test('GET /api/tasks returns 200 and task list', async () => {
     const res = await request(app).get('/api/tasks');
     expect(res.status).toBe(200);

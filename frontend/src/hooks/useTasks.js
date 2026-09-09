@@ -1,33 +1,23 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { taskService } from '../services/taskService';
 
-const CACHE_KEY = 'taskflow_cached_tasks';
-
-function getInitialTasks() {
-  try {
-    const cached = localStorage.getItem(CACHE_KEY);
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch (e) {}
-  return [];
-}
-
 export function useTasks(toast) {
-  const [tasks, setTasks] = useState(getInitialTasks);
+  // Always initialize from live API - no mock / localStorage default data
+  const [tasks, setTasks] = useState([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0, high_priority: 0 });
-  const [loading, setLoading] = useState(() => getInitialTasks().length === 0);
+  const [loading, setLoading] = useState(true);
+  const [serverError, setServerError] = useState(null);
+
   const [statusFilter, setStatusFilter] = useState('All');
   const [priorityFilter, setPriorityFilter] = useState('All');
   const [sortBy, setSortBy] = useState('due_date');
   const [searchQuery, setSearchQuery] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Sync cache helper
-  const updateCache = useCallback((updatedTasks) => {
+  // Clean up legacy localStorage cache if present
+  useEffect(() => {
     try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify(updatedTasks));
+      localStorage.removeItem('taskflow_cached_tasks');
     } catch (e) {}
   }, []);
 
@@ -63,20 +53,23 @@ export function useTasks(toast) {
 
   // Fetch tasks according to current sort order
   const fetchTasks = useCallback(async (showSkeleton = false) => {
-    if (showSkeleton && tasks.length === 0) setLoading(true);
+    if (showSkeleton) setLoading(true);
     try {
       const data = await taskService.getTasks({
         sort: sortBy,
       });
-      setTasks(data);
-      updateCache(data);
+      setTasks(data || []);
+      setServerError(null);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
-      toastRef.current?.error(err.message || 'Unable to load tasks from server.');
+      const errorMsg = err.message || 'Unable to connect to the PostgreSQL database.';
+      setServerError(errorMsg);
+      // Zero mock fallback: Never inject fake tasks on failure
+      toastRef.current?.error(errorMsg);
     } finally {
       setLoading(false);
     }
-  }, [sortBy, tasks.length, updateCache]);
+  }, [sortBy]);
 
   // Trigger fetch whenever sort changes
   useEffect(() => {
@@ -94,6 +87,7 @@ export function useTasks(toast) {
       await taskService.createTask(taskData);
       toastRef.current?.success('Task created successfully.');
       setIsAddModalOpen(false);
+      setServerError(null);
       await Promise.all([fetchTasks(false), fetchStats()]);
       return true;
     } catch (err) {
@@ -111,6 +105,7 @@ export function useTasks(toast) {
       await taskService.updateTask(id, taskData);
       toastRef.current?.success('Task updated successfully.');
       setEditingTask(null);
+      setServerError(null);
       await Promise.all([fetchTasks(false), fetchStats()]);
       return true;
     } catch (err) {
@@ -121,17 +116,13 @@ export function useTasks(toast) {
     }
   };
 
-  // Toggle Task Status (Pending <-> Completed) with optimistic update
+  // Toggle Task Status (Pending <-> Completed) with optimistic update & rollback
   const handleToggleStatus = async (task) => {
     const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
     const originalTasks = [...tasks];
     const originalStats = { ...stats };
 
-    setTasks((prev) => {
-      const nextTasks = prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t));
-      updateCache(nextTasks);
-      return nextTasks;
-    });
+    setTasks((prev) => prev.map((t) => (t.id === task.id ? { ...t, status: newStatus } : t)));
     setStats((prev) => ({
       ...prev,
       pending: newStatus === 'Pending' ? prev.pending + 1 : Math.max(0, prev.pending - 1),
@@ -143,27 +134,23 @@ export function useTasks(toast) {
       toastRef.current?.success(
         newStatus === 'Completed' ? 'Task marked as completed.' : 'Task changed to pending.'
       );
+      setServerError(null);
       fetchStats();
     } catch (err) {
       setTasks(originalTasks);
-      updateCache(originalTasks);
       setStats(originalStats);
       toastRef.current?.error(err.message || 'Failed to update task status.');
     }
   };
 
-  // Delete Task
+  // Delete Task with optimistic update & rollback
   const handleDeleteTask = async (id) => {
     setActionLoading(true);
     const originalTasks = [...tasks];
     const originalStats = { ...stats };
     const taskToDelete = tasks.find((t) => t.id === id);
 
-    setTasks((prev) => {
-      const nextTasks = prev.filter((t) => t.id !== id);
-      updateCache(nextTasks);
-      return nextTasks;
-    });
+    setTasks((prev) => prev.filter((t) => t.id !== id));
     if (taskToDelete) {
       setStats((prev) => ({
         total: Math.max(0, prev.total - 1),
@@ -180,6 +167,7 @@ export function useTasks(toast) {
       await taskService.deleteTask(id);
       toastRef.current?.success('Task deleted successfully.');
       setDeletingTask(null);
+      setServerError(null);
       fetchStats();
       return true;
     } catch (err) {
@@ -196,6 +184,7 @@ export function useTasks(toast) {
     tasks,
     stats,
     loading,
+    serverError,
     statusFilter,
     setStatusFilter,
     priorityFilter,
