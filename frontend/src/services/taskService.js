@@ -9,11 +9,20 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Low-level HTTP request helper with automatic JWT token attachment
+ */
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
+  
+  // Attach JWT Bearer token if present
+  const token = localStorage.getItem('taskflow_token');
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
   const config = {
     headers: {
       'Content-Type': 'application/json',
+      ...authHeaders,
       ...options.headers,
     },
     ...options,
@@ -29,6 +38,12 @@ async function request(endpoint, options = {}) {
     }
 
     if (!response.ok) {
+      if (response.status === 401) {
+        // Discard expired/invalid token
+        localStorage.removeItem('taskflow_token');
+        localStorage.removeItem('taskflow_user');
+        window.dispatchEvent(new CustomEvent('taskflow_auth_expired'));
+      }
       const errorMessage = data?.error || data?.message || `Request failed with status ${response.status}`;
       throw new ApiError(errorMessage, response.status, data);
     }
@@ -42,6 +57,35 @@ async function request(endpoint, options = {}) {
   }
 }
 
+/**
+ * Authentication service
+ */
+export const authService = {
+  async register({ name, email, password }) {
+    const res = await request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ name, email, password }),
+    });
+    return res;
+  },
+
+  async login({ email, password }) {
+    const res = await request('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    return res;
+  },
+
+  async getMe() {
+    const res = await request('/auth/me');
+    return res.user;
+  },
+};
+
+/**
+ * Task management service (Protected by auth)
+ */
 export const taskService = {
   /**
    * Fetch all tasks with optional filters and sorting

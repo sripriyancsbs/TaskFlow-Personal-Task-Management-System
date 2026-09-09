@@ -13,16 +13,19 @@ import InsightsView from './components/InsightsView';
 import CommandPalette from './components/CommandPalette';
 import KeyboardShortcutsModal from './components/KeyboardShortcutsModal';
 import ToastContainer from './components/ToastContainer';
+import AuthModal from './components/AuthModal';
 
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { useTheme } from './hooks/useTheme';
 import { useToast } from './hooks/useToast';
 import { useTasks } from './hooks/useTasks';
 import { exportToCSV, exportToJSON } from './utils/exportUtils';
 import { formatDueDate } from './utils/dateUtils';
 
-export default function App() {
+function TaskFlowApp() {
   const { theme, toggleTheme } = useTheme();
   const toast = useToast();
+  const { user, isAuthenticated, authLoading } = useAuth();
 
   // Navigation: 'dashboard' | 'insights'
   const [activeNav, setActiveNav] = useState('dashboard');
@@ -33,6 +36,15 @@ export default function App() {
   const [selectedCalendarDate, setSelectedCalendarDate] = useState(null);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+
+  // Authentication Modal State
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalTab, setAuthModalTab] = useState('signin');
+
+  const handleOpenAuthModal = (tab = 'signin') => {
+    setAuthModalTab(tab);
+    setIsAuthModalOpen(true);
+  };
 
   // Hook for tasks state and API actions
   const {
@@ -62,7 +74,7 @@ export default function App() {
     handleToggleStatus,
     handleDeleteTask,
     refreshTasks,
-  } = useTasks(toast);
+  } = useTasks(toast, handleOpenAuthModal);
 
   // Sync selectedDetailTask if tasks update
   useEffect(() => {
@@ -111,7 +123,12 @@ export default function App() {
 
       if (e.key === 'n' || e.key === 'N') {
         e.preventDefault();
-        setIsAddModalOpen(true);
+        if (!isAuthenticated) {
+          handleOpenAuthModal('signin');
+          toast.info('Please sign in to create tasks.');
+        } else {
+          setIsAddModalOpen(true);
+        }
       } else if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         toggleTheme();
@@ -122,6 +139,7 @@ export default function App() {
         if (selectedDetailTask) setSelectedDetailTask(null);
         if (isCommandPaletteOpen) setIsCommandPaletteOpen(false);
         if (isShortcutsOpen) setIsShortcutsOpen(false);
+        if (isAuthModalOpen) setIsAuthModalOpen(false);
         if (viewMode === 'focus') setViewMode('list');
       }
     }
@@ -135,6 +153,8 @@ export default function App() {
     selectedDetailTask,
     isCommandPaletteOpen,
     isShortcutsOpen,
+    isAuthModalOpen,
+    isAuthenticated,
   ]);
 
   // Derived counts for toolbar pills & widgets
@@ -167,7 +187,7 @@ export default function App() {
       list = list.filter((t) => t.priority === priorityFilter);
     }
 
-    // Specific Calendar Date Filter (when user clicks a date on the calendar widget)
+    // Specific Calendar Date Filter
     if (selectedCalendarDate) {
       list = list.filter((t) => {
         if (!t.due_date) return false;
@@ -202,17 +222,14 @@ export default function App() {
       }
       if (sortBy === 'due_date' || sortBy === 'dueDate') {
         const weights = { High: 3, Medium: 2, Low: 1 };
-        // Both have no due date: order by priority (High > Medium > Low), then newest created
         if (!a.due_date && !b.due_date) {
           const pDiff = (weights[b.priority] || 2) - (weights[a.priority] || 2);
           if (pDiff !== 0) return pDiff;
           return new Date(b.created_at) - new Date(a.created_at);
         }
-        // Task without due date appears on top
         if (!a.due_date && b.due_date) return -1;
         if (a.due_date && !b.due_date) return 1;
 
-        // Both have due dates: sort chronologically (earliest first)
         const timeA = new Date(a.due_date).getTime();
         const timeB = new Date(b.due_date).getTime();
         if (timeA !== timeB) return timeA - timeB;
@@ -274,7 +291,14 @@ export default function App() {
           onSelectNav={handleSelectNav}
           stats={stats}
           todayCount={todayCount}
-          onOpenNewTask={() => setIsAddModalOpen(true)}
+          onOpenNewTask={() => {
+            if (!isAuthenticated) {
+              handleOpenAuthModal('signin');
+              toast.info('Please sign in to create tasks.');
+            } else {
+              setIsAddModalOpen(true);
+            }
+          }}
           onOpenShortcuts={() => setIsShortcutsOpen(true)}
         />
 
@@ -290,6 +314,7 @@ export default function App() {
             onOpenShortcuts={() => setIsShortcutsOpen(true)}
             tasks={tasks}
             onSelectTask={(t) => setSelectedDetailTask(t)}
+            onOpenAuthModal={handleOpenAuthModal}
           />
 
           {/* Body Columns: Center Workspace + Right Information Rail */}
@@ -318,7 +343,7 @@ export default function App() {
                   )}
 
                   {/* Top Hero Banner matching reference */}
-                  <ProductivityHero />
+                  <ProductivityHero onOpenAuthModal={handleOpenAuthModal} />
 
                   {/* My Tasks Section */}
                   <section className="my-tasks-section-wrap" aria-label="My Tasks Workspace">
@@ -333,7 +358,14 @@ export default function App() {
                       setViewMode={setViewMode}
                       searchQuery={searchQuery}
                       setSearchQuery={setSearchQuery}
-                      onOpenAddModal={() => setIsAddModalOpen(true)}
+                      onOpenAddModal={() => {
+                        if (!isAuthenticated) {
+                          handleOpenAuthModal('signin');
+                          toast.info('Please sign in to create tasks.');
+                        } else {
+                          setIsAddModalOpen(true);
+                        }
+                      }}
                       stats={stats}
                       todayCount={todayCount}
                     />
@@ -387,7 +419,14 @@ export default function App() {
                       onDelete={(task) => setDeletingTask(task)}
                       onSelectTask={(task) => setSelectedDetailTask(task)}
                       onStartFocus={handleStartFocus}
-                      onOpenAddModal={() => setIsAddModalOpen(true)}
+                      onOpenAddModal={() => {
+                        if (!isAuthenticated) {
+                          handleOpenAuthModal('signin');
+                          toast.info('Please sign in to create tasks.');
+                        } else {
+                          setIsAddModalOpen(true);
+                        }
+                      }}
                       onResetFilters={() => {
                         setStatusFilter('All');
                         setPriorityFilter('All');
@@ -415,13 +454,20 @@ export default function App() {
               )}
             </main>
 
-            {/* 3. Right Information Rail (rendered on Dashboard except when in Calendar mode) */}
+            {/* 3. Right Information Rail */}
             {activeNav !== 'insights' && viewMode !== 'calendar' && (
               <RightRail
                 tasks={tasks}
                 selectedCalendarDate={selectedCalendarDate}
                 onToggleStatus={handleToggleStatus}
-                onOpenNewTask={() => setIsAddModalOpen(true)}
+                onOpenNewTask={() => {
+                  if (!isAuthenticated) {
+                    handleOpenAuthModal('signin');
+                    toast.info('Please sign in to create tasks.');
+                  } else {
+                    setIsAddModalOpen(true);
+                  }
+                }}
                 onExpandFocusMode={() => setViewMode('focus')}
                 onSelectCalendarDate={handleCalendarSelectDate}
                 isActionLoading={actionLoading}
@@ -435,7 +481,14 @@ export default function App() {
       <MobileBottomNav
         activeNav={activeNav}
         onSelectNav={handleSelectNav}
-        onOpenNewTask={() => setIsAddModalOpen(true)}
+        onOpenNewTask={() => {
+          if (!isAuthenticated) {
+            handleOpenAuthModal('signin');
+            toast.info('Please sign in to create tasks.');
+          } else {
+            setIsAddModalOpen(true);
+          }
+        }}
         stats={stats}
       />
 
@@ -463,7 +516,14 @@ export default function App() {
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
         tasks={tasks}
-        onOpenNewTask={() => setIsAddModalOpen(true)}
+        onOpenNewTask={() => {
+          if (!isAuthenticated) {
+            handleOpenAuthModal('signin');
+            toast.info('Please sign in to create tasks.');
+          } else {
+            setIsAddModalOpen(true);
+          }
+        }}
         onSelectViewMode={(mode) => {
           setViewMode(mode);
         }}
@@ -510,6 +570,22 @@ export default function App() {
         isOpen={isShortcutsOpen}
         onClose={() => setIsShortcutsOpen(false)}
       />
+
+      {/* User Authentication Modal (Sign In / Register) */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        defaultTab={authModalTab}
+        onClose={() => setIsAuthModalOpen(false)}
+        onAuthSuccess={() => toast.success('Signed in successfully!')}
+      />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <TaskFlowApp />
+    </AuthProvider>
   );
 }

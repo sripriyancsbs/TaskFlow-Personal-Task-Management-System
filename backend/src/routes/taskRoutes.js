@@ -1,12 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const taskController = require('../controllers/taskController');
+const { authMiddleware } = require('../middleware/authMiddleware');
 const {
   validateTaskId,
   validateCreateTask,
   validateUpdateTask,
   validateUpdateStatus,
 } = require('../middleware/validator');
+
+// All task routes require authentication
+router.use(authMiddleware);
 
 // Stats endpoint (placed before /:id to prevent collision)
 router.get('/stats', (req, res, next) => taskController.getStats(req, res, next));

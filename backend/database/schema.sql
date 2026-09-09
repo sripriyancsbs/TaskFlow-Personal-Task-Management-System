@@ -1,10 +1,25 @@
 -- ===================================================
 -- TaskFlow Database Schema (PostgreSQL)
+-- Multi-User Authentication & Unique User Isolation
 -- ===================================================
 
--- Create tasks table with priority and deadline support
+-- Create users table
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT chk_email_not_empty CHECK (LENGTH(TRIM(email)) > 0),
+  CONSTRAINT chk_name_not_empty CHECK (LENGTH(TRIM(name)) > 0)
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- Create tasks table with user isolation support
 CREATE TABLE IF NOT EXISTS tasks (
   id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
   title VARCHAR(255) NOT NULL,
   description TEXT,
   status VARCHAR(50) NOT NULL DEFAULT 'Pending',
@@ -16,7 +31,8 @@ CREATE TABLE IF NOT EXISTS tasks (
   CONSTRAINT chk_title_not_empty CHECK (LENGTH(TRIM(title)) > 0)
 );
 
--- Indexes for optimal performance
+-- Indexes for optimal query performance
+CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority);
 CREATE INDEX IF NOT EXISTS idx_tasks_created_at ON tasks(created_at DESC);

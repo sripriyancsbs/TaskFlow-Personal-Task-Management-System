@@ -2,12 +2,13 @@ const db = require('../config/db');
 
 class TaskService {
   /**
-   * Retrieve tasks with optional filtering, search, and sorting
+   * Retrieve tasks belonging to the authenticated user with optional filtering, search, and sorting
+   * @param {number} userId - ID of authenticated user
    * @param {Object} options - { status, priority, search, sort }
    */
-  async getAllTasks({ status, priority, search, sort = 'newest' } = {}) {
-    let sql = 'SELECT id, title, description, status, priority, due_date, created_at FROM tasks WHERE 1=1';
-    const params = [];
+  async getAllTasks(userId, { status, priority, search, sort = 'newest' } = {}) {
+    let sql = 'SELECT id, title, description, status, priority, due_date, created_at, user_id FROM tasks WHERE user_id = $1';
+    const params = [userId];
 
     if (status && status !== 'All') {
       if (status === 'Today') {
@@ -72,9 +73,10 @@ class TaskService {
   }
 
   /**
-   * Get task statistics (total, pending, completed, high priority count)
+   * Get user task statistics (total, pending, completed, high priority count)
+   * @param {number} userId
    */
-  async getStats() {
+  async getStats(userId) {
     const sql = `
       SELECT
         COUNT(*)::int AS total,
@@ -82,31 +84,34 @@ class TaskService {
         COUNT(CASE WHEN status = 'Completed' THEN 1 END)::int AS completed,
         COUNT(CASE WHEN priority = 'High' AND status = 'Pending' THEN 1 END)::int AS high_priority
       FROM tasks
+      WHERE user_id = $1
     `;
-    const result = await db.query(sql);
+    const result = await db.query(sql, [userId]);
     return result.rows[0] || { total: 0, pending: 0, completed: 0, high_priority: 0 };
   }
 
   /**
-   * Get a single task by ID
+   * Get a single task by ID strictly belonging to userId
+   * @param {number} userId
    * @param {number} id
    */
-  async getTaskById(id) {
-    const sql = 'SELECT id, title, description, status, priority, due_date, created_at FROM tasks WHERE id = $1';
-    const result = await db.query(sql, [id]);
+  async getTaskById(userId, id) {
+    const sql = 'SELECT id, title, description, status, priority, due_date, created_at, user_id FROM tasks WHERE id = $1 AND user_id = $2';
+    const result = await db.query(sql, [id, userId]);
     return result.rows[0] || null;
   }
 
   /**
-   * Create a new task
+   * Create a new task belonging to userId
+   * @param {number} userId
    * @param {Object} taskData - { title, description, status, priority, due_date }
    */
-  async createTask({ title, description, status = 'Pending', priority = 'Medium', due_date = null }) {
+  async createTask(userId, { title, description, status = 'Pending', priority = 'Medium', due_date = null }) {
     const createdAt = new Date().toISOString();
     const sql = `
-      INSERT INTO tasks (title, description, status, priority, due_date, created_at)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      RETURNING id, title, description, status, priority, due_date, created_at
+      INSERT INTO tasks (title, description, status, priority, due_date, created_at, user_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id, title, description, status, priority, due_date, created_at, user_id
     `;
     const result = await db.query(sql, [
       title.trim(),
@@ -115,21 +120,23 @@ class TaskService {
       priority || 'Medium',
       due_date || null,
       createdAt,
+      userId,
     ]);
     return result.rows[0];
   }
 
   /**
-   * Update full task details
+   * Update full task details for userId
+   * @param {number} userId
    * @param {number} id
    * @param {Object} updateData - { title, description, status, priority, due_date }
    */
-  async updateTask(id, { title, description, status, priority, due_date }) {
+  async updateTask(userId, id, { title, description, status, priority, due_date }) {
     const sql = `
       UPDATE tasks
       SET title = $1, description = $2, status = $3, priority = COALESCE($4, priority), due_date = $5
-      WHERE id = $6
-      RETURNING id, title, description, status, priority, due_date, created_at
+      WHERE id = $6 AND user_id = $7
+      RETURNING id, title, description, status, priority, due_date, created_at, user_id
     `;
     const result = await db.query(sql, [
       title.trim(),
@@ -138,33 +145,36 @@ class TaskService {
       priority || 'Medium',
       due_date || null,
       id,
+      userId,
     ]);
     return result.rows[0] || null;
   }
 
   /**
-   * Update task status
+   * Update task status for userId
+   * @param {number} userId
    * @param {number} id
    * @param {string} status - 'Pending' | 'Completed'
    */
-  async updateTaskStatus(id, status) {
+  async updateTaskStatus(userId, id, status) {
     const sql = `
       UPDATE tasks
       SET status = $1
-      WHERE id = $2
-      RETURNING id, title, description, status, priority, due_date, created_at
+      WHERE id = $2 AND user_id = $3
+      RETURNING id, title, description, status, priority, due_date, created_at, user_id
     `;
-    const result = await db.query(sql, [status, id]);
+    const result = await db.query(sql, [status, id, userId]);
     return result.rows[0] || null;
   }
 
   /**
-   * Delete a task by ID
+   * Delete a task by ID for userId
+   * @param {number} userId
    * @param {number} id
    */
-  async deleteTask(id) {
-    const sql = 'DELETE FROM tasks WHERE id = $1 RETURNING id';
-    const result = await db.query(sql, [id]);
+  async deleteTask(userId, id) {
+    const sql = 'DELETE FROM tasks WHERE id = $1 AND user_id = $2 RETURNING id';
+    const result = await db.query(sql, [id, userId]);
     return result.rowCount > 0;
   }
 }

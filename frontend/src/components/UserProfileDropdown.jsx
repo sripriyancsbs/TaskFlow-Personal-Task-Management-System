@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { IconSettings, IconSun, IconMoon, IconClose } from './Icons';
 
 export default function UserProfileDropdown({
@@ -7,7 +8,9 @@ export default function UserProfileDropdown({
   theme,
   onToggleTheme,
   onOpenShortcuts,
+  onOpenAuthModal,
 }) {
+  const { user, isAuthenticated, logout } = useAuth();
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -33,16 +36,25 @@ export default function UserProfileDropdown({
 
   if (!isOpen) return null;
 
+  const initial = user?.name ? user.name.trim().charAt(0).toUpperCase() : 'G';
+  const displayName = user?.name || 'Guest Explorer';
+  const displayEmail = user?.email || 'Not signed in';
+
+  const handleLogout = () => {
+    onClose();
+    logout();
+  };
+
   return (
     <div className="user-profile-menu" ref={menuRef} role="menu" aria-label="User Account">
       {/* Header Info */}
       <div className="profile-menu-header">
         <div className="profile-menu-avatar">
-          <span>S</span>
+          <span>{initial}</span>
         </div>
         <div className="profile-menu-info">
-          <span className="profile-name">Sripriyan</span>
-          <span className="profile-role">Lead Architect</span>
+          <span className="profile-name">{displayName}</span>
+          <span className="profile-role">{displayEmail}</span>
         </div>
       </div>
 
@@ -50,6 +62,21 @@ export default function UserProfileDropdown({
 
       {/* Menu Options */}
       <div className="profile-menu-list">
+        {!isAuthenticated ? (
+          <button
+            type="button"
+            className="profile-menu-item profile-auth-action-btn"
+            onClick={() => {
+              onClose();
+              onOpenAuthModal?.('signin');
+            }}
+            role="menuitem"
+          >
+            <span className="profile-item-icon">🔐</span>
+            <span>Sign In / Create Account</span>
+          </button>
+        ) : null}
+
         <button
           type="button"
           className="profile-menu-item"
@@ -84,12 +111,24 @@ export default function UserProfileDropdown({
             </>
           )}
         </button>
+
+        {isAuthenticated && (
+          <button
+            type="button"
+            className="profile-menu-item profile-menu-logout"
+            onClick={handleLogout}
+            role="menuitem"
+          >
+            <span className="profile-item-icon">🚪</span>
+            <span>Sign Out</span>
+          </button>
+        )}
       </div>
 
       <div className="profile-menu-divider" />
 
       <div className="profile-menu-footer">
-        <span className="profile-version-text">TaskFlow v2.4 Pro</span>
+        <span className="profile-version-text">TaskFlow v3.0 Multi-User Pro</span>
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const authRoutes = require('./routes/authRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const { notFoundHandler, errorHandler } = require('./middleware/errorHandler');
 const { checkDbConnection } = require('./config/db');
@@ -39,7 +40,10 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
-// Task Management Routes
+// Authentication Routes
+app.use('/api/auth', authRoutes);
+
+// Task Management Routes (Protected)
 app.use('/api/tasks', taskRoutes);
 
 // Catch-all 404 handler

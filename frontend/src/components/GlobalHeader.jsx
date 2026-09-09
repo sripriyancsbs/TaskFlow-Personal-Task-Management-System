@@ -1,11 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
 import {
-  IconLogo,
   IconSearch,
   IconSun,
   IconMoon,
-  IconChevronRight,
 } from './Icons';
+import { useAuth } from '../context/AuthContext';
 import UserProfileDropdown from './UserProfileDropdown';
 
 export default function GlobalHeader({
@@ -15,11 +14,11 @@ export default function GlobalHeader({
   setSearchQuery,
   onOpenCommandPalette,
   onOpenShortcuts,
-  tasks = [],
-  onSelectTask,
+  onOpenAuthModal,
 }) {
   const searchInputRef = useRef(null);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const { user, isAuthenticated } = useAuth();
 
   // Focus search on "/" keypress
   useEffect(() => {
@@ -35,6 +34,9 @@ export default function GlobalHeader({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const initial = user?.name ? user.name.trim().charAt(0).toUpperCase() : 'G';
+  const firstName = user?.name ? user.name.trim().split(' ')[0] : 'Guest';
 
   return (
     <header className="slim-global-header">
@@ -87,23 +89,33 @@ export default function GlobalHeader({
           </div>
         </button>
 
-        {/* User Profile Avatar Anchor */}
+        {/* User Profile / Auth Anchor */}
         <div className="header-popover-anchor">
-          <button
-            type="button"
-            className="header-user-btn"
-            onClick={() => setIsProfileOpen((prev) => !prev)}
-            title="Account & Preferences"
-            aria-label="User Account"
-          >
-            <div className="user-avatar-circle">
-              <span>S</span>
-            </div>
-            <span className="user-greeting-name">Hi, Sripriyan</span>
-            <svg className="w-3 h-3 text-muted ml-0.5" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
+          {isAuthenticated ? (
+            <button
+              type="button"
+              className="header-user-btn"
+              onClick={() => setIsProfileOpen((prev) => !prev)}
+              title="Account & Preferences"
+              aria-label="User Account"
+            >
+              <div className="user-avatar-circle">
+                <span>{initial}</span>
+              </div>
+              <span className="user-greeting-name">Hi, {firstName}</span>
+              <svg className="w-3 h-3 text-muted ml-0.5" width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="header-signin-btn"
+              onClick={() => onOpenAuthModal?.('signin')}
+            >
+              <span>Sign In</span>
+            </button>
+          )}
 
           <UserProfileDropdown
             isOpen={isProfileOpen}
@@ -111,6 +123,7 @@ export default function GlobalHeader({
             theme={theme}
             onToggleTheme={toggleTheme}
             onOpenShortcuts={onOpenShortcuts}
+            onOpenAuthModal={onOpenAuthModal}
           />
         </div>
       </div>

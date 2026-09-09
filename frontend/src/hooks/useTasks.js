@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { taskService } from '../services/taskService';
+import { useAuth } from '../context/AuthContext';
 
-export function useTasks(toast) {
-  // Always initialize from live API - no mock / localStorage default data
+export function useTasks(toast, onOpenAuthModal) {
+  const { user, isAuthenticated, authLoading } = useAuth();
+
   const [tasks, setTasks] = useState([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, completed: 0, high_priority: 0 });
   const [loading, setLoading] = useState(true);
@@ -14,14 +16,7 @@ export function useTasks(toast) {
   const [searchQuery, setSearchQuery] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Clean up legacy localStorage cache if present
-  useEffect(() => {
-    try {
-      localStorage.removeItem('taskflow_cached_tasks');
-    } catch (e) {}
-  }, []);
-
-  // Stable ref for toast methods to avoid effect re-execution
+  // Stable ref for toast methods
   const toastRef = useRef(toast);
   useEffect(() => {
     toastRef.current = toast;
@@ -41,18 +36,28 @@ export function useTasks(toast) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch metrics dynamically
+  // Fetch metrics dynamically for the authenticated user
   const fetchStats = useCallback(async () => {
+    if (!isAuthenticated) {
+      setStats({ total: 0, pending: 0, completed: 0, high_priority: 0 });
+      return;
+    }
     try {
       const statsData = await taskService.getStats();
       setStats(statsData);
     } catch (err) {
       console.error('Failed to load stats:', err);
     }
-  }, []);
+  }, [isAuthenticated]);
 
-  // Fetch tasks according to current sort order
+  // Fetch tasks for the authenticated user
   const fetchTasks = useCallback(async (showSkeleton = false) => {
+    if (!isAuthenticated) {
+      setTasks([]);
+      setLoading(false);
+      return;
+    }
+
     if (showSkeleton) setLoading(true);
     try {
       const data = await taskService.getTasks({
@@ -64,24 +69,28 @@ export function useTasks(toast) {
       console.error('Failed to fetch tasks:', err);
       const errorMsg = err.message || 'Unable to connect to the PostgreSQL database.';
       setServerError(errorMsg);
-      // Zero mock fallback: Never inject fake tasks on failure
       toastRef.current?.error(errorMsg);
     } finally {
       setLoading(false);
     }
-  }, [sortBy]);
+  }, [isAuthenticated, sortBy]);
 
-  // Trigger fetch whenever sort changes
+  // Trigger fetch whenever user authentication changes or sort changes
   useEffect(() => {
-    fetchTasks(true);
-  }, [fetchTasks]);
+    if (!authLoading) {
+      fetchTasks(true);
+      fetchStats();
+    }
+  }, [authLoading, user?.id, fetchTasks, fetchStats]);
 
-  useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
-
-  // Create Task
+  // Create Task (Requires Authentication)
   const handleCreateTask = async (taskData) => {
+    if (!isAuthenticated) {
+      onOpenAuthModal?.('signin');
+      toastRef.current?.info('Please sign in to create and save tasks.');
+      return false;
+    }
+
     setActionLoading(true);
     try {
       await taskService.createTask(taskData);
@@ -100,6 +109,7 @@ export function useTasks(toast) {
 
   // Update Task
   const handleUpdateTask = async (id, taskData) => {
+    if (!isAuthenticated) return false;
     setActionLoading(true);
     try {
       await taskService.updateTask(id, taskData);
@@ -116,8 +126,9 @@ export function useTasks(toast) {
     }
   };
 
-  // Toggle Task Status (Pending <-> Completed) with optimistic update & rollback
+  // Toggle Task Status (Pending <-> Completed) with optimistic update
   const handleToggleStatus = async (task) => {
+    if (!isAuthenticated) return;
     const newStatus = task.status === 'Completed' ? 'Pending' : 'Completed';
     const originalTasks = [...tasks];
     const originalStats = { ...stats };
@@ -143,8 +154,9 @@ export function useTasks(toast) {
     }
   };
 
-  // Delete Task with optimistic update & rollback
+  // Delete Task with optimistic update
   const handleDeleteTask = async (id) => {
+    if (!isAuthenticated) return false;
     setActionLoading(true);
     const originalTasks = [...tasks];
     const originalStats = { ...stats };
